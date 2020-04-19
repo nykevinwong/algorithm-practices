@@ -16,16 +16,11 @@ interface IInterviewQuestion
     public void performTest();
 }
 
-class Helper 
+class Helper
 {
-    public static void equals(List<String> left, String[] right, String msg)
-    {
-        if(msg!=null) System.out.println(msg + " =  " + Arrays.toString(right) + " => " + left.equals(Arrays.asList(right)) );
-    }
-
-    public static void equals(int left, int right, String msg)
-    {
-        if(msg!=null) System.out.println(msg + " =  " + right + " => " + (left == right) );
+    public static <T>  void equals(List<T> left, T[] right, String msg)
+    {       
+        if(msg!=null) System.out.println(msg + " =  " + Arrays.toString(right) + " => actual: " + Arrays.toString(left.toArray()) +" => " + left.equals(Arrays.asList(right)) );
     }
 
     public static void equals(int[] left, int[] right, String msg)
@@ -33,23 +28,34 @@ class Helper
         if(msg!=null) System.out.println(msg + " =  " + right + " => actual: " + Arrays.toString(left) + " => " + Arrays.equals(left, right) );
     }
 
-    public static void equals(List<List<String>> left, String[][] right, String msg)
+    public static <T> void equals(T[] left, T[] right, String msg)
+    {
+        if(msg!=null) System.out.println(msg + " =  " + right + " => actual: " + Arrays.toString(left) + " => " + Arrays.equals(left, right) );
+    }
+
+    public static <T> void equals(T left, T right, String msg)
+    {
+        if(msg!=null) System.out.println(msg + "... =  " + right + " => " + (left.equals(right)) );
+    }
+
+
+    public static <T> void equals(List<List<T>> left, T[][] right, String msg)
     {
         if(msg!=null) System.out.println(msg + " =  " + right + " => " + equalsTo(left,right) );
     }
 
-    public static boolean equalsTo(List<List<String>> left, String[][] right)
+    public static <T> boolean equalsTo(List<List<T>> left, T[][] right)
     {
         if(left.size() != right.length) return false;
 
         for(int i=0;i<left.size();i++)
         {
-            List<String> l2 = left.get(i);
-            String[] r2 = right[i];
+            List<T> l2 = left.get(i);
+            T[] r2 = right[i];
             for(int j=0;j<l2.size();j++)
             {
-                String ls = l2.get(j);
-                String rs = r2[j];
+                T ls = l2.get(j);
+                T rs = r2[j];
                 if(!ls.equals(rs)) return false;
             }
         }
@@ -466,6 +472,66 @@ class CriticalRoutersOrConnections implements IInterviewQuestion
 
 }
 
+class PartitionLabel implements IInterviewQuestion
+{
+    public List<Integer> partitionLabels(String S) {
+        int[] last = new int[26];
+        List<Integer> res = new ArrayList<Integer>();
+        
+        for(int i=0;i<S.length();i++)
+            last[S.charAt(i)-'a'] = i;           
+        
+        int lastMax = 0, start = 0;
+        for(int i=0;i<S.length();i++)
+        {
+            lastMax = Math.max( last[S.charAt(i)-'a'], lastMax);           
+            
+            if(lastMax==i)
+            {
+                res.add(lastMax-start+1);                    
+                start = i+1;
+            }
+        }
+        
+        return res;
+    }
+
+    public void performTest()
+    {
+        Helper.equals(partitionLabels("ababcbacadefegdehijhklij"), new Integer[] {9,7,8}, "Partition Label -> ababcbacadefegdehijhklij ");
+
+    }
+
+    public String toString() { return "Partition Labels([E]*) [https://leetcode.com/problems/partition-labels/]: ";}
+}
+
+class ReorderDataInLogFile implements IInterviewQuestion
+{
+    public String[] reorderLogFiles(String[] logs) {
+        Arrays.sort(logs, (log1, log2) -> {
+            String[] split1 = log1.split(" ", 2);
+            String[] split2 = log2.split(" ", 2);
+            boolean isDigit1 = Character.isDigit(split1[1].charAt(0));
+            boolean isDigit2 = Character.isDigit(split2[1].charAt(0));
+            if (!isDigit1 && !isDigit2) {
+                int cmp = split1[1].compareTo(split2[1]);
+                if (cmp != 0) return cmp;
+                return split1[0].compareTo(split2[0]);
+            }
+            return isDigit1 ? (isDigit2 ? 0 : 1) : -1;
+        });
+        return logs;
+    }
+
+    public void performTest()
+    {
+        Helper.equals( reorderLogFiles(new String[] { "dig1 8 1 5 1","let1 art can","dig2 3 6","let2 own kit dig","let3 art zero"} ) ,
+        new String[] {"let1 art can","let3 art zero","let2 own kit dig","dig1 8 1 5 1","dig2 3 6"}, "Reoder Log ");
+    }
+
+    public String toString() { return " Reorder Data in Log Files([E]*) [https://leetcode.com/problems/reorder-data-in-log-files/]: ";}
+}
+
 public class YamaInterview
 {
     public static void main(String[] args)
@@ -473,9 +539,11 @@ public class YamaInterview
         IInterviewQuestion[] questions = new IInterviewQuestion[] {
             new TopKFrequentlyMentionedKeywords(),
             new RottintOranges(),
+            new CriticalRoutersOrConnections(),
             new SearchSuggestionSystem(),
             new NumberOfClusters() , 
-            new CriticalRoutersOrConnections()
+            new ReorderDataInLogFile(),
+            new PartitionLabel(),
         }; 
         int count = 1;
         for(IInterviewQuestion q: questions) { 
