@@ -532,6 +532,283 @@ class ReorderDataInLogFile implements IInterviewQuestion
     public String toString() { return " Reorder Data in Log Files([E]*) [https://leetcode.com/problems/reorder-data-in-log-files/]: ";}
 }
 
+class FindPairWithGivenSum implements IInterviewQuestion
+{
+    public List<List<Integer>> findPairWithGivenSum(int[] nums, int target)
+    {
+        Map<Integer, List<Integer>> pos = new HashMap<>();
+        List<List<Integer>> res = new ArrayList<>();
+        int leftMax = Integer.MIN_VALUE;
+        int rightMax = Integer.MIN_VALUE;
+
+        for(int i=0;i<nums.length;i++) 
+        { 
+            List<Integer> ls = pos.get(target-nums[i]);
+
+            if(ls!= null && ls.size() > 0)
+            {
+                    int left = ls.get(0) > i ? i: ls.get(0);
+                    int right = ls.get(0) > i ? ls.get(0):i;
+                    if(left >= leftMax) //when left =leftMax, right must be equal to rightMax.
+                    {
+                        leftMax = left;
+                        rightMax = right;
+                        res.clear();
+                        res.add(Arrays.asList(leftMax, rightMax));
+                    }
+                    ls.remove(0);
+            }
+            else
+            {
+                pos.put(nums[i], pos.getOrDefault(nums[i], new ArrayList<Integer>()) );
+                pos.get(nums[i]).add(i);
+            }
+        }
+
+    //    Collections.sort(res, (arr1, arr2) -> ( arr1[0]==arr2[0] ? arr2[1]-arr1[1] : arr2[0]-arr1[0] )   );
+
+        return res;
+    }
+
+    public void performTest()
+    {
+      Helper.equals(findPairWithGivenSum(new int[] {1, 10, 25, 35, 60 } , 90 - 30 ),
+      new Integer[][] { {2, 3}}, "Find Pair ");
+       
+      Helper.equals(findPairWithGivenSum(new int[] {21,1,2,45,46,46} , 46 ),
+      new Integer[][] { {1, 3}}, "Find  Pairs ");
+
+    }
+
+    public String toString() { return "Find Pair With Given Sum ([E,I]**) [https://leetcode.com/discuss/interview-question/356960]: ";}
+}
+
+class FindUniquePairsWithGivenSum implements IInterviewQuestion
+{
+    public List<List<Integer>> findUniquePairsWithGivenSum(int[] nums, int target)
+    {
+        Map<Integer, List<Integer>> pos = new HashMap<>();
+        List<List<Integer>> res = new ArrayList<>();
+        for(int i=0;i<nums.length;i++) 
+        { 
+            List<Integer> ls = pos.get(target-nums[i]);
+
+            if(ls!= null && ls.size() > 0)
+            {  // to DO. get rid of duplication.
+                    int x = nums[i];
+                    int y = nums[ls.get(0)];
+                    int left = x > y ? x:y;
+                    int right = x > y ? y:x;
+                    res.add(Arrays.asList(left, right));
+                    ls.remove(0);
+            }
+            else
+            {
+                pos.put(nums[i], pos.getOrDefault(nums[i], new ArrayList<Integer>()) );
+                pos.get(nums[i]).add(i);
+            }
+        }
+
+        return res;
+    }
+
+    public void performTest()
+    {
+      Helper.equals(findUniquePairsWithGivenSum(new int[] {1, 1, 2, 45, 46, 46 } , 47),
+      new Integer[][] { {45, 2}, {46, 1}, {46 ,1}}, "Find Unique Pairs ");
+
+      Helper.equals(findUniquePairsWithGivenSum(new int[] {1, 5, 1, 5} , 6 ),
+      new Integer[][] { {5, 1}, {5, 1}}, "Find Unique Pairs ");
+    }
+
+    public String toString() { return "Find Unqiue Pair With Given Sum ([E,I]**) [https://leetcode.com/discuss/interview-question/372434]: ";}
+}
+
+class SearchMatrix implements IInterviewQuestion
+{
+    public boolean searchMatrix(int[][] matrix, int target) {
+        if(matrix==null || matrix.length==0 || matrix[0].length==0 ) return false;
+        int col = matrix[0].length-1;
+        int row = 0;
+        
+        while(row < matrix.length && col >= 0)
+        {
+            if(matrix[row][col]==target) return true;
+            if(matrix[row][col] < target) row++;
+            else col--;
+        }
+        
+        return false;
+    }
+
+    public void performTest()
+    {
+        int[][] m = new int[][] {
+            {1,   4,  7, 11, 15},
+            {2,   5,  8, 12, 19},
+            {3,   6,  9, 16, 22},
+            {10, 13, 14, 17, 24},
+            {18, 21, 23, 26, 30}
+        };
+
+        Helper.equals(searchMatrix(m, 16), true, "Search 16 ");
+        Helper.equals(searchMatrix(m, 13), true, "Search 13 ");
+        Helper.equals(searchMatrix(m, 100), false, "Search 100 ");
+    }
+
+    public String toString() { return "Seach a 2D Matrix ([N]**) [https://leetcode.com/problems/search-a-2d-matrix-ii]: ";}
+}
+
+class FavoriteGenres implements IInterviewQuestion
+{
+    public Map<String, List<String>> favoriteGenres(Map<String, List<String>> userSongs, Map<String, List<String>> songGenres)
+    {
+        Map<String, Integer> genreCount = new HashMap<>();
+        Map<String, String> song2Genre = new HashMap<>();
+        Map<String, List<String>> m = new HashMap<>();
+
+        for(Map.Entry<String, List<String>> e : songGenres.entrySet())
+        {
+            for(String song: e.getValue())
+            {
+                song2Genre.put(song, e.getKey());
+            }
+        }
+         
+        System.out.println(song2Genre);
+
+        for(Map.Entry<String, List<String>> e : userSongs.entrySet())
+        {
+            List<String> songs = e.getValue();
+            String singer = e.getKey();
+            genreCount.clear();
+
+            int max = Integer.MIN_VALUE;
+            for(String song: songs)
+            {
+                String genre = song2Genre.get(song);
+                genreCount.put(genre, genreCount.getOrDefault(genre,0) +1 );
+                max = Math.max( max, genreCount.get(genre));
+            }
+
+            for(Map.Entry<String,Integer> gc: genreCount.entrySet())
+            {
+                if(max==gc.getValue()) 
+                {
+                    m.put(singer, m.getOrDefault(singer, new ArrayList<String>()));
+                    m.get(singer).add(gc.getKey());
+                }
+            }
+
+            genreCount.clear();
+        }
+
+        return m;
+    }
+
+    public void performTest()
+    {
+        Map<String, List<String>> userSongs = new HashMap<>() ;
+        Map<String, List<String>> songGenres = new HashMap<>();
+
+        userSongs.put("David", Arrays.asList("song1", "song2", "song3", "song4", "song8"));
+        userSongs.put("Emma", Arrays.asList("song5", "song6", "song7"));
+        songGenres.put("Rock", Arrays.asList("song1", "song3"));
+        songGenres.put("Dubstep", Arrays.asList("song7"));
+        songGenres.put("Techno", Arrays.asList("song2", "song4"));
+        songGenres.put("Pop", Arrays.asList("song5", "song6"));
+        songGenres.put("Jazz", Arrays.asList("song8", "song9"));
+
+        Map<String, List<String>> m = favoriteGenres(userSongs, songGenres);
+        System.out.println(m);
+    }
+
+    public String toString() { return "Favorite Genres ([N]**) [    https://leetcode.com/discuss/interview-question/373006]: ";}
+
+}
+
+class MostCommonWord implements IInterviewQuestion
+{
+    public String mostCommonWord(String paragraph, String[] banned) {
+        String[] words = paragraph.split("\\W+"); // split by all non-character. + means more than one non-character can be used. 
+        HashSet<String> set = new HashSet<>();
+        HashMap<String,Integer> m = new HashMap<>();
+        String maxWord = null;
+        int max = 0;
+        for(String b : banned)
+            set.add(b.toLowerCase());
+        
+        for(String w: words)
+        {
+            w = w.toLowerCase();
+            if(!set.contains(w))
+            {
+                m.put(w, m.getOrDefault(w,0)+1);
+                int count =m.get(w);
+                if(count > max)
+                {
+                    maxWord = w;
+                    max = count;
+                }
+            }
+        }
+        
+        return maxWord;
+    }
+
+    public void performTest()
+    {
+        Helper.equals(mostCommonWord("Bob hit a ball, the hit BALL flew far after it was hit.", new String[] {"hit"}), 
+        "ball" , "Most Command Word ");
+        Helper.equals(mostCommonWord("Bob. hIt, baLl", new String[] {"bob", "hit"}), 
+        "ball" , "Most Command Word ");
+    }
+    
+    public String toString() { return "Most Common Word ([I]**) [https://leetcode.com/problems/most-common-word/]: ";}
+
+}
+
+class SubstringsOfSizeKwithKDistinctChars implements IInterviewQuestion
+{
+    public List<String> substringsOfSizeKwithKDistinctChars(String s, int k)
+    {
+        List<String> res = new ArrayList<>();
+        Set<String> set = new HashSet<>();
+        int[] m = new int[256];
+
+        for(int i=0, j = 0;i < s.length() && j < s.length(); )
+        {
+            if(m[s.charAt(i)]==0)
+            {
+                m[s.charAt(i++)]++;
+
+            }
+            else 
+            {
+                m[s.charAt(j++)]--;
+            }
+            if(i-j==k) { 
+                String sub = s.substring(j,i);
+                // use both hashSet and list to remove duplicate and maintain the original order 
+                if(!set.contains(sub)) { res.add(sub); }
+                set.add(sub);
+                m[s.charAt(j++)]--;
+            }
+            
+
+        }
+        return res;
+    }
+
+    public void performTest()
+    {
+        Helper.equals( substringsOfSizeKwithKDistinctChars("awaglknagawunagwkwagl",4), 
+        new String[] {"wagl", "aglk", "glkn", "lkna", "knag", "gawu", "awun", "wuna", "unag", "nagw", "agwk", "kwag"}, "SubString");
+    }
+    
+    public String toString() { return "Substrings Of Size K with K Distinct Chars ([I]**) [https://leetcode.com/discuss/interview-question/370112]: ";}
+}
+
 public class YamaInterview
 {
     public static void main(String[] args)
@@ -544,6 +821,12 @@ public class YamaInterview
             new NumberOfClusters() , 
             new ReorderDataInLogFile(),
             new PartitionLabel(),
+            new FindPairWithGivenSum(),
+            new SearchMatrix(),
+            new FindUniquePairsWithGivenSum(),
+            new FavoriteGenres(),
+            new MostCommonWord(),
+            new SubstringsOfSizeKwithKDistinctChars()
         }; 
         int count = 1;
         for(IInterviewQuestion q: questions) { 
