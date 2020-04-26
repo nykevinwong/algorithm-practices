@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.PriorityQueue;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Stack;
 
 interface IInterviewQuestion
 {
@@ -809,6 +810,343 @@ class SubstringsOfSizeKwithKDistinctChars implements IInterviewQuestion
     public String toString() { return "Substrings Of Size K with K Distinct Chars ([I]**) [https://leetcode.com/discuss/interview-question/370112]: ";}
 }
 
+
+class SubstringsOfExactlyKDistinctChars implements IInterviewQuestion
+{
+
+    public List<String> substringswithExactlyKDistinctChars(String s, int k)
+    {
+        List<String> res = new ArrayList<>();
+        HashMap<Character,Integer> m = new HashMap<>();
+
+        for(int i=0, j = 0;i < s.length() && j < s.length(); )
+        {
+            char end = s.charAt(i);
+            char start = s.charAt(j);
+
+            if(m.getOrDefault(end, 0) == 0 && m.size() <= 2)
+            {
+                m.put(end, m.getOrDefault(end, 0)+1);
+                i++;
+
+            }
+            else 
+            {
+                m.put(start, m.getOrDefault(start,0)-1);
+                j++;
+            }
+
+
+         //   System.out.print(j + "," + i + " = " + m.get(end) + ",size=" + m.size() + "|");
+            if(m.size()==2) res.add(s.substring(j,i));            
+
+        }
+        return res;
+    }
+
+    public void performTest()
+    {
+        Helper.equals( substringswithExactlyKDistinctChars("pqpqs",2), 
+        new String[] {"pq", "pqp", "pqpq", "qp", "qpq", "pq", "qs"}, "SubString ");
+    }
+    
+    public String toString() { return "Substrings with exactly K Distinct Chars ([I]**) [https://leetcode.com/discuss/interview-question/370157]: ";}
+}
+
+class TreasureIsland implements IInterviewQuestion
+{
+    public List<int[]> minimumRoute(char[][] maze)
+    {
+        Queue<int[]> q = new LinkedList<>();
+        int count = 0;
+        int[][] dir = new int[][] { {0,1},{1,0},{ 0,-1},{-1,0}};
+        q.offer(new int[]{0,0});
+        maze[0][0]= (char)count++;
+
+        while(q.size() > 0)
+        {
+            int size = q.size();
+            for(int i=0;i<size;i++)
+            {
+                int[] pos = q.poll();
+               // System.out.println(Arrays.toString(pos));
+                for(int j=0;j<dir.length;j++)
+                {
+                    int nx = pos[0] + dir[j][0];
+                    int ny = pos[1] + dir[j][1];
+                    if(nx < 0 || nx >= maze[0].length || ny < 0 || ny >= maze.length) continue;
+                    if(maze[ny][nx]=='O') // only O is walkable
+                    {
+                        q.offer(new int[] {nx,ny});
+                        maze[ny][nx]= (char)count;
+                    }
+                    else if(maze[ny][nx]=='X')
+                    { // found the target
+                        System.out.println("Steps: " + (count));
+                        List<int[]> res = createSolution(maze, pos[0], pos[1]);  
+                        return res;
+                    }
+                }
+
+            }
+            count++;
+        }
+
+        return null;        
+    }
+
+    public List<int[]> createSolution(char[][] maze, int lastX, int lastY)
+    {
+        List<int[]> res = new ArrayList<>();
+        Stack<int[]> s = new Stack<>();
+        System.out.println("Creating the solution.");
+        s.push(new int[] {lastX,lastY} );
+        int count = (int)(maze[lastY][lastX]);
+        count--;
+        
+        for(int i=0;i<maze.length;i++)
+        {
+            for(int j=0;j<maze[0].length;j++)
+            {
+                System.out.print(((char)(maze[i][j]+'0')) + "|");
+            }
+            System.out.println();
+        }
+
+        while(count >= 0)
+        {
+            int[][] dir = new int[][] { {0,1},{1,0},{ 0,-1},{-1,0}};
+            for(int i=0;i<dir.length;i++)
+            {
+                int nx = lastX + dir[i][0];
+                int ny = lastY + dir[i][1];
+                if(nx < 0 || nx >= maze[0].length || ny < 0 || ny >= maze.length) continue;
+                if((int)maze[ny][nx]==count) 
+                {
+                    s.push(new int[] {nx, ny});
+                    lastX = nx; lastY = ny;
+                    count--;
+                    break;
+                }
+            }
+        }
+
+        while(!s.isEmpty()) { res.add(s.pop()); };
+        
+        return res;
+    }
+
+    public void performTest()
+    {
+        List<int[]> res = minimumRoute(new char[][] {
+            {'O','O','O','O'},
+            {'D','O','D','O'},
+            {'O','O','O','O'},
+            {'X','D','D','O'},
+        });
+
+        for(int[] pos: res)
+        {
+            System.out.print("(" + pos[1] + "," + pos[0] + ") ,");
+        }
+        System.out.println();
+    }
+    
+    public String toString() { return "Treasure Island ([I]**) [https://leetcode.com/discuss/interview-question/347457]: ";}
+
+}
+
+class Node {
+    public int val;
+    public Node next;
+    public Node random;
+
+    public Node(int x) { val = x; } 
+
+    public Node(int[] arr)
+    {
+        Node cur = this;        
+        for(int i=0;i<arr.length;i++)
+        {
+            if(i==0)
+            {
+                this.val = arr[i];
+            }
+            else
+            {
+                cur.next = new Node(arr[i]);
+                cur = cur.next;
+            }
+        }
+    }
+
+    public boolean equalList(Node other) { 
+        Node cur=this;
+
+        for(; cur!=null && other !=null ; cur=cur.next, other=other.next)
+        {
+            if(cur.val != other.val) return false;
+            if(cur.random != other.random) return false;
+        }
+
+        return (cur==null && other==null); 
+    }
+}
+
+
+
+class MergeTwoSortedList implements IInterviewQuestion
+{
+    public Node mergeTwoLists(Node l1, Node l2) {
+        Node dummy = new Node(0);
+        Node temp = dummy;
+        
+        while(l1 !=null && l2 != null)
+        {
+            Node smaller = (l1.val < l2.val) ? l1:l2;
+            temp.next = smaller;             
+            temp = temp.next;
+            
+            if(l1.val < l2.val) l1=l1.next;
+            else l2 = l2.next;
+        }
+        
+        while(l1!=null)
+        {
+            temp.next = l1;
+            temp = temp.next;
+            l1 = l1.next;
+        }
+        
+        while(l2!=null)
+        {
+            temp.next = l2;
+            temp = temp.next;
+            l2 = l2.next;
+        }
+        
+        return dummy.next;
+    }
+
+    public void performTest()
+    {        
+         System.out.println("Same contents? " + mergeTwoLists(new Node(new int[] {1,3,6,8}), new Node(new int[]{2,4,5,7}) )
+         .equalList(new Node(new int[] {1,2,3,4,5,6,7,8} ) ) );
+
+    }
+    
+    public String toString() { return "Merge Two Sorted Lists ([N]**) [https://leetcode.com/problems/merge-two-sorted-lists/] ";}
+
+}
+
+
+class TreasureIsland2 implements IInterviewQuestion
+{
+    public int minimumRoute(char[][] maze)
+    {
+        Queue<int[]> q = new LinkedList<>();
+        int[][] dir = new int[][] { {0,1}, {0,-1}, {1,0}, {-1,0} };
+
+        for(int i=0;i< maze.length;i++)
+        {
+            for(int j=0; j < maze[0].length;j++)
+            {
+                if(maze[i][j]=='S')
+                {
+                    q.add(new int[] {j, i});
+                }
+            }
+        }
+        
+        int count = 0;
+        while(q.size() > 0)
+        {
+            int size = q.size();
+
+            for(int i=0;i<size;i++)
+            {
+                int[] pos = q.poll();
+                for(int k=0;k<dir.length;k++)
+                {
+                    int nx = pos[0] + dir[k][0];
+                    int ny = pos[1] + dir[k][1];
+                    if(nx <0 || nx >= maze[0].length || ny <0 || ny >= maze.length) continue;
+
+                    if(maze[ny][nx]=='O') 
+                    {
+                        maze[ny][nx] = 'D'; // visited
+                        q.add(new int[] {nx, ny });
+                    }
+                    else if(maze[ny][nx]=='X')
+                    {
+                        return count; // found it
+                    }
+                }
+            }
+            count++;
+        }
+
+        return count;
+    }
+
+    public void performTest()
+    {
+        int minStep = minimumRoute(new char[][] {
+            {'S','O','O','S','S'},
+            {'D','O','D','O','D'},
+            {'O','O','O','O','O'},
+            {'X','D','D','O','O'},
+            {'X','D','D','D','O'},
+        });
+
+        System.out.println("Min Steps: " + minStep);
+    }
+    
+    public String toString() { return "Treasure Island 2 [https://leetcode.com/discuss/interview-question/356150]: ";}
+}
+
+class CopyRandomLinkedList {
+    public Node copyRandomListWithDummyNode(Node head)   {
+        if(head==null) return null;        
+        HashMap<Node, Node> m = new HashMap<Node, Node>();
+        Node dummy = new Node(0);
+        
+        for(Node cur = head, temp = dummy; cur!=null; cur=cur.next, temp=temp.next)
+        {
+            temp.next = new Node(cur.val);
+            m.put(cur, temp.next);
+        }
+                
+        for(Node cur = head, temp = dummy.next; cur!=null; cur=cur.next, temp=temp.next)
+        {
+            if(cur.random!=null) temp.random = m.get(cur.random);
+        }
+        
+        return dummy.next;
+    }
+
+    public Node copyRandomListWithoutDummyNode(Node head)   {
+        if(head==null) return null;        
+        HashMap<Node, Node> m = new HashMap<Node, Node>();
+
+        for(Node cur = head; cur!=null; cur=cur.next)
+        {
+            m.put(cur, new Node(cur.val));
+        }
+            
+        for(Node cur = head; cur!=null; cur=cur.next)
+        {
+            m.get(cur).next = m.get(cur.next);
+            m.get(cur).random = m.get(cur.random);
+        }
+
+        return m.get(head);
+    }
+
+
+
+}
+
 public class YamaInterview
 {
     public static void main(String[] args)
@@ -826,8 +1164,13 @@ public class YamaInterview
             new FindUniquePairsWithGivenSum(),
             new FavoriteGenres(),
             new MostCommonWord(),
-            new SubstringsOfSizeKwithKDistinctChars()
+            new SubstringsOfSizeKwithKDistinctChars(),
+            new SubstringsOfExactlyKDistinctChars(),
+            new TreasureIsland(),
+            new TreasureIsland2(),
+            new MergeTwoSortedList()
         }; 
+
         int count = 1;
         for(IInterviewQuestion q: questions) { 
             System.out.println("(" + count + ") " + q);
