@@ -11,6 +11,9 @@ import java.util.PriorityQueue;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.TreeMap;
+import java.util.SortedMap;
+import java.util.Map.Entry;
 
 interface IInterviewQuestion
 {
@@ -961,22 +964,41 @@ class Node {
     public Node next;
     public Node random;
 
-    public Node(int x) { val = x; } 
+    public Node(int x) { val = x;} 
+
+    public Node(int x, Node random) { val = x; this.random = random; } 
 
     public Node(int[] arr)
     {
-        Node cur = this;        
+        this(arr, new int[] {});
+    }
+
+    public Node(int[] arr, int[] randomPos)
+    {
+        Node cur = this;   
+        HashMap<Integer,Node> m = new HashMap<>();
+
         for(int i=0;i<arr.length;i++)
         {
             if(i==0)
             {
-                this.val = arr[i];
+                cur.val = arr[i];
             }
             else
             {
-                cur.next = new Node(arr[i]);
+                cur.next = new Node(arr[i], null);
                 cur = cur.next;
             }
+
+            m.put(i, cur);
+        }
+
+        
+        for(int j=0;j < randomPos.length;j++)
+        {
+            Node node =  m.get(j);
+            if(randomPos[j]!=0)
+                node.random = m.get(randomPos[j]);
         }
     }
 
@@ -985,10 +1007,21 @@ class Node {
 
         for(; cur!=null && other !=null ; cur=cur.next, other=other.next)
         {
+           // System.out.print("["+ cur.val + "," + other.val + "](  ");
+           // System.out.print( cur.random + "," + other.random + " )  |");
+
             if(cur.val != other.val) return false;
-            if(cur.random != other.random) return false;
+
+            if(cur.random== null && other.random== null ) continue;
+
+            if(cur.random!= null && other.random!= null && 
+            cur.random.val != other.random.val) return false;
+
+            if(cur.random== null || other.random== null ) return false;
+
         }
 
+      
         return (cur==null && other==null); 
     }
 }
@@ -1105,7 +1138,7 @@ class TreasureIsland2 implements IInterviewQuestion
     public String toString() { return "Treasure Island 2 [https://leetcode.com/discuss/interview-question/356150]: ";}
 }
 
-class CopyRandomLinkedList {
+class CopyRandomLinkedList  implements IInterviewQuestion {
     public Node copyRandomListWithDummyNode(Node head)   {
         if(head==null) return null;        
         HashMap<Node, Node> m = new HashMap<Node, Node>();
@@ -1144,8 +1177,82 @@ class CopyRandomLinkedList {
     }
 
 
+    public void performTest()
+    {
+        Node root = new Node(new int[] {0,1,2,3,4,5,6,7,8,9}, new int[] {0 ,1,3,5,7,9,0,6, 8,0});
+        Node copy = new Node(new int[] {0,1,2,3,4,5,6,7,8,9}, new int[] {0 ,1,3,5,7,9,0,6, 8,0});
+        System.out.println("Same contents? " + copyRandomListWithDummyNode(root ).equalList(copy) );
+        System.out.println("Same contents? " + copyRandomListWithoutDummyNode(root ).equalList(copy) );
+
+    }
+    
+    public String toString() { return "Copy Random Linked List ([N]**) [https://leetcode.com/problems/copy-list-with-random-pointer/] ";}
+}
+
+class LongestStringWithThreeConsecutiveCharacters  implements IInterviewQuestion {
+
+    public String LongestStringWithKConsecutiveCharacters(int k)
+    {
+        int maxRepeat = k- 1;
+        HashMap<Character, Integer> m  =new HashMap<>(); 
+        m.put('a',1);
+        m.put('b',2);
+        m.put('c',3);
+        m.put('d',6);
+        m.put('e',7);
+        m.put('f',7);
+        m.put('g',9);
+        m.put('i',9);
+
+        PriorityQueue<Character> pq = new PriorityQueue<>( (c1, c2) -> ( m.get(c2)-m.get(c1)));
+
+        for(Character c : m.keySet()) { pq.add(c); }
+
+        StringBuilder s = new StringBuilder();
+        Character lastChar = null;
+
+        while(pq.size() > 0)
+        {            
+            Character c = pq.poll(); // get max value
+
+            if(lastChar == c)
+            {
+                Character next = pq.poll();
+                pq.add(c); // add back;
+                c = next;
+            }
+            
+
+            int count = m.get(c);
+        //    System.out.print(" pq:" + pq + " , c="+ c + " | ");
+
+            if(count > 0)
+            {
+                for(int i=0;  i < Math.min(maxRepeat,count) ; i++)
+                {
+                    s.append(c);
+                    m.put(c,m.get(c)-1);
+                }
+
+                if(m.get(c)>0) pq.add(c); // add back 
+            }
+            lastChar = c;
+        }
+
+        return s.toString();
+    }
+
+    public void performTest()
+    {
+        System.out.println(LongestStringWithKConsecutiveCharacters(3));
+    }
+
+    
+    public String toString() { 
+        return "Copy Random Linked List ([N]**) [https://leetcode.com/problems/copy-list-with-random-pointer/] ";}
 
 }
+
 
 public class YamaInterview
 {
@@ -1159,16 +1266,18 @@ public class YamaInterview
             new NumberOfClusters() , 
             new ReorderDataInLogFile(),
             new PartitionLabel(),
+            new TreasureIsland(),
+            new TreasureIsland2(),
             new FindPairWithGivenSum(),
+            new CopyRandomLinkedList(),
+            new MergeTwoSortedList(),
             new SearchMatrix(),
             new FindUniquePairsWithGivenSum(),
             new FavoriteGenres(),
             new MostCommonWord(),
             new SubstringsOfSizeKwithKDistinctChars(),
             new SubstringsOfExactlyKDistinctChars(),
-            new TreasureIsland(),
-            new TreasureIsland2(),
-            new MergeTwoSortedList()
+            new LongestStringWithThreeConsecutiveCharacters()
         }; 
 
         int count = 1;
