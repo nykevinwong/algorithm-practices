@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.PriorityQueue;
 import java.util.LinkedList;
@@ -14,6 +15,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.SortedMap;
 import java.util.Map.Entry;
+import java.util.Iterator;
 
 interface IInterviewQuestion
 {
@@ -1186,7 +1188,7 @@ class CopyRandomLinkedList  implements IInterviewQuestion {
 
     }
     
-    public String toString() { return "Copy Random Linked List ([N]**) [https://leetcode.com/problems/copy-list-with-random-pointer/] ";}
+    public String toString() { return "Copy Random Linked List ([N]**) [https://leetcode.com/problems/reorganize-string/] ";}
 }
 
 class LongestStringWithThreeConsecutiveCharacters  implements IInterviewQuestion {
@@ -1249,16 +1251,399 @@ class LongestStringWithThreeConsecutiveCharacters  implements IInterviewQuestion
 
     
     public String toString() { 
-        return "Copy Random Linked List ([N]**) [https://leetcode.com/problems/copy-list-with-random-pointer/] ";}
+        return "Copy Random Linked List ([N]**) [https://leetcode.com/problems/copy-list-with-random-pointer/] ";
+    }
 
 }
 
+class PrisonCellsAfterNDays implements IInterviewQuestion {
+
+    public int[] prisonAfterNDays(int[] cells, int N) {
+        if(cells==null || cells.length == 0 || N <= 0) return cells;
+            
+        HashSet<String> set = new HashSet<>();
+        int cycle=0;
+        for(int i=0;i < N;i++)
+        {
+            int[] next = nextDay(cells);
+
+            String s =Arrays.toString(next);
+            if(!set.contains(s))
+            {
+                set.add(s);
+                cycle++;
+            }
+            else 
+            {
+                N%=cycle;
+                while(0 < N--) { cells = nextDay(cells); }
+                break;
+            }
+            cells = next;
+        }
+
+        return cells;
+    }
+
+    private int[] nextDay(int[] cells)
+    {
+        int[] temp = new int[cells.length];
+
+        for(int i=1;i<cells.length-1;i++)
+        {
+            temp[i] = (cells[i-1] == cells[i+1] ) ? 1:0;            
+        }
+        return temp;
+    }
+
+    public void performTest()
+    {
+        Helper.equals(prisonAfterNDays(new int[]{1,0,0,1,0,0,1,0}, 1000000000) ,
+            new int[]{0,0,1,1,1,1,1,0} , "prison After N Days:");
+
+    }
+
+    
+    public String toString() { 
+        return "prison After N Days [https://leetcode.com/problems/prison-cells-after-n-days/]";
+    }
+}
+
+class KClosetPointstoOrigin implements IInterviewQuestion  {
+
+    public int[][] KClosetPoints_Sort(int[][] points, int K) {
+        Arrays.sort(points, (p1, p2) -> (p1[0]*p1[0] +p1[1]*p1[1]) - (p2[0]*p2[0] +p2[1]*p2[1]) );
+        // int[][] temp = new int[K];
+        // for(int i=0;i<K;i++) temp[i]=points[i];
+        // return temp;
+        return Arrays.copyOfRange(points, 0, K);
+    }
+
+    public int[][] KClosetPoints_PQ(int[][] points, int K) {
+        PriorityQueue<int[]> pq = new PriorityQueue<int[]>(  
+            (p1, p2) -> (p2[0]*p2[0] +p2[1]*p2[1]) - (p1[0]*p1[0] +p1[1]*p1[1])  );
+        // Max heap means get max value when polling.
+        // polled values from the max heap are in an descending order
+
+        // this trick maintains a size K of Max PriorityQueue (Max Heap) to stay N*log(k) time complexity.
+        for(int[] p:points) 
+        {
+            pq.offer(p);
+            if(pq.size() > K)  pq.poll();
+        }
+        // all first N-K items are polled. only last K items remained.
+        int[][] res = new int[K][2];
+        while(K > 0) res[--K] = pq.poll();
+        return res;
+    }
+
+    public int[][] KClosetPoints_QSelect(int[][] points, int K) {
+        int len =  points.length, l = 0, r = len - 1;
+        while (l <= r) {
+            int mid = helper(points, l, r);
+            if (mid == K) break;
+            if (mid < K) {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return Arrays.copyOfRange(points, 0, K);
+    }
+    
+    private int helper(int[][] arr, int l, int r) {
+        int[] pivot = arr[l];
+
+        while (l < r) {
+            while (l < r && compare(arr[r], pivot) >= 0) r--;
+            arr[l] = arr[r];
+            while (l < r && compare(arr[l], pivot) <= 0) l++;
+            arr[r] = arr[l];
+        }
+
+        arr[l] = pivot;
+        return l;
+    }
+    
+    private int compare(int[] p1, int[] p2) {
+        return p1[0] * p1[0] + p1[1] * p1[1] - p2[0] * p2[0] - p2[1] * p2[1];
+    }
+
+
+    public void performTest()
+    {
+
+    }
+
+    
+    public String toString() { 
+        return "K Closest Points to Origin ([I] *)[https://leetcode.com/problems/k-closest-points-to-origin/discuss/220235/Java-Three-solutions-to-this-classical-K-th-problem.]";
+    }
+}
+
+class JavaCollections implements IInterviewQuestion  {
+    public void performTest()
+    {
+        System.out.println("Priorty Queue:");
+        PriorityQueue<Integer> pq=new PriorityQueue<>(); // min heap/priority queue by deafult
+        int[] points = new int[] { 1,10,3,6,5,8,7,4,9,2}; int K = 3;
+
+        for(int pValue: points) { pq.offer(pValue); }
+
+        // print heap array content (in an array order)
+        for(Integer p: pq) { System.out.print(p+ " "); } System.out.println();        
+
+        // how to iterate through PriorityQueue without affectint pq heap content
+        Iterator itr = pq.iterator(); 
+        while (itr.hasNext()) { System.out.print(itr.next()+ " ");  } System.out.println();
+       
+        while(pq.size() > 0) { System.out.print(pq.poll()+ " "); } System.out.println();
+
+        Queue<Integer> pq2=new PriorityQueue<>(Collections.reverseOrder()); // max heap/priority queue
+
+        for(int pValue: points) { pq2.offer(pValue); }
+        while(pq2.size() > 0) { System.out.print(pq2.poll()+ " "); } System.out.println();
+   
+        // a trick to stay N*log(k) time complexity for Max Priority Queue to get top k minimum in descending order (max-heap max first out)
+        // without this trick, it's N*log(N) time complexity.
+        // Min Priority Queue = N*log(N) since you need to put all numbers into the pq first.
+        // Min Priority Queue with the trick won't work since you will get top k max in an ascending order. (min-heap min first out)
+        for(int pValue: points) 
+        {
+            pq2.offer(pValue);
+            if(pq2.size() > K)  pq2.poll();
+        }
+
+        // print the result        
+        while(!pq2.isEmpty()) { System.out.print(pq2.poll() + " "); } System.out.println();
+    
+        // add() vs offer(), remove() vs poll(), element() vs peek().
+        // add() from Collection can't return false and throw an exception if an element cannot be added.
+        // offer() from Queue returns false if an element cannot be added.
+        // when the queue is empty, element() and remove() from Collection throws NoSuchElementException, while poll() & peek() return null.
+        /*
+           add Throws:
+            IllegalStateException - if the element cannot be added at this time due to capacity restrictions
+            ClassCastException - if the class of the specified element prevents it from being added to this queue.
+                for example, adding another type of object into a non-generic ArrayList.
+            NullPointerException - if the specified element is null and this queue does not permit null elements
+            IllegalArgumentException - if some property of this element prevents it from being added to this queue
+        */
+
+        System.out.println("HashMap:");
+
+        HashMap<Integer, String> m = new HashMap<>();
+        m.put(11, "AB");
+        m.put(2, "CD");
+        m.put(33, "EF");
+        m.put(9, "GH");
+        m.put(3, "IJ");    
+
+        for(Map.Entry e: m.entrySet() ) { System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); }  System.out.println();
+
+        HashMap<Integer,String> m2 = (HashMap)m.clone();
+        
+        for(Map.Entry<Integer,String> e: m2.entrySet() ) { System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); } System.out.println();   
+        m2.clear();
+        m2.putAll(m);        Iterator mItr = m2.entrySet().iterator();
+        while(mItr.hasNext()) { Map.Entry e = (Map.Entry)mItr.next(); System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); } System.out.println();
+
+        /*  HashSet & HashMap doesn't maintain any kind of order of its elements.
+            LinkedHashSet & LinkedHashMap maintains insertion order.
+            TreeSet & TreeMap sort the entries in ascending order of keys and they don't allow null key and throw NullPointerException.
+            Set -> contains
+            Map -> containsKey, containsValue
+        */        
+
+        Set<Integer> set = m2.keySet();
+        Iterator<Integer> ite2 = set.iterator();
+        while(ite2.hasNext()) { System.out.print(ite2.next() + ","); } System.out.println();
+
+        Collection<String> values = m2.values();
+        for(String s: values) { System.out.print(s + ","); } System.out.println();
+        Iterator<String> ite3 = values.iterator();
+        while(ite3.hasNext()) { System.out.print(ite3.next() + ","); } System.out.println();
+
+        System.out.println("hello");
+
+    }
+    
+    public String toString() { 
+        return "Mastering JavaCollectionsn [https://beginnersbook.com/2013/12/how-to-loop-hashmap-in-java/]";
+    }
+}
+
+/*
+
+- Use Comparator when you need more flexibilit
+** The compareTo() method will return a positive number if one object is greater than the other, negative if it’s lower, and zero if they are the same.
+
+import java.util.Comparator;
+
+public class MyComparator implements Comparator<String>
+{
+   @Override // ascending order based on String length
+   public int compare(String x, String y) { return x.length() - y.length();}
+}
+
+or you can replace everything before Comparator using new keyword as below.
+
+Collections.sort(strArr, new Comparator<String>
+{
+   @Override // ascending order based on String length
+   public int compare(String x, String y) { return x.length() - y.length();}
+});
+
+Using Comparator with lambda expressions as below:
+Collections.sort(strArr, (x, y)  x.length() - y.length()  );
+
+You always use compareTo for a String/object.
+Collections.sort(strArr, (s1, s2) -> s1.compareTo(s2));
+
+even shorter with
+Collections.sort(strArr, Comparator.naturalOrder() );
+
+    // ascending order means to arrange values from smallest to largest.
+    // descending order means to arrange values from largest to smallest.
+
+    // ascending order based on value
+    public int compare(Integer x, Integer y) { return x - y;}
+    // descending order based on value
+    public int compare(Integer x, Integer y) { return y - x;}
+
+    // sort by id in ascending order. when ids are the same, sort by their name in alphabetic order.
+    public int compare(User x, User y) { return x.id == y.id ? x.name.compareTo(y)  : x.id-y.id  ;}
+    (x,y) -> x.id==y.id ? x.name.compareTo(y) : x.id-y.id;
+
+    // sort by map value in ascending order. When map value are the same, sort by the name in alphabetic order.
+    public int compare(String s1, String s2) { return count.get(s1) == count.get(s2) ? s1.compareTo(s2)  : count.get(s1)-count.get(s2); }
+    (s1,s2) -> count.get(s1)==count.get(s2) ? s1.compareTo(s2) : count.get(s1)-count.get(s2);
+
+    Sorting a Map with TreeMap
+    Map<String, Integer> m  = new TreeMap<>();
+    m.put("DEF", 10);
+    m.put("ABC", 20);
+    System.out.println(m);
+
+    Sorting a Set with TreeSet
+    Set<String> s  = new TreeSet<>();
+    s.put("DEF");
+    s.put("ABC");
+    System.out.println(m);
+*/
+
+class GenerateParentheses implements IInterviewQuestion {
+    
+    public List<String> generateParentheses(int n) {
+        List<String> res = new ArrayList<>();
+        dfs("", n, n, res);   
+        return res;
+    }
+    
+    public void dfs(String s, int left, int right, List<String> res)
+    {
+        if(left > right) return;
+        if(left <0 || right < 0) return;
+        if(left==0 && right==0) res.add(s);
+        
+        dfs(s+"(", left-1, right, res);
+        dfs(s+")", left, right-1, res);
+    }
+
+    public void performTest()
+    {
+        Helper.equals( generateParentheses(3), new String[] {"((()))","(()())","(())()","()(())","()()()"} , "Valid parentheses generation? ");
+    }
+
+   
+    public String toString() { 
+        return "Generate Parentheses ([I] *) [https://leetcode.com/problems/generate-parentheses/]";
+    }
+}
+class TreeNode {
+         int val;
+         TreeNode left;
+         TreeNode right;
+
+         TreeNode() {  }
+         TreeNode(int x) { val = x; }
+
+         public static TreeNode createBinaryTreeFromArray(Integer[] arr)
+         {
+             return createBinaryTreeFromArray(arr, 0);
+         }
+
+         protected static TreeNode createBinaryTreeFromArray(Integer [] arr, int index)
+         {
+             if(arr.length > index)
+             {
+                 if(arr[index]==null) return null;
+
+                 TreeNode node = new TreeNode(arr[index]);
+                 node.left = createBinaryTreeFromArray(arr, 2*index+1);
+                 node.right = createBinaryTreeFromArray(arr, 2*index+2);
+                 return node;
+             }
+             return null;
+         }
+}
+
+class SubtreeOfAnotherTree implements IInterviewQuestion
+{
+    public boolean isSubtree(TreeNode s, TreeNode t) {        
+        return traverse(s, t);
+    }
+    
+    public boolean traverse(TreeNode s, TreeNode t)
+    {
+        return s!=null && (
+            sameStructure(s,t) ||
+            traverse(s.left,t) ||
+            traverse(s.right,t)
+        );
+    }
+    
+    public boolean sameStructure(TreeNode a, TreeNode b)
+    {
+        if(a==null && b ==null) // touch bottom of the tree
+            return true;
+        
+        if(a!=null && b !=null &&
+          a.val == b.val)
+        {
+            return sameStructure(a.left, b.left) && sameStructure(a.right, b.right);
+        }   
+        
+        return false;
+    }
+
+    public void performTest()
+    {
+        TreeNode s = TreeNode.createBinaryTreeFromArray(new Integer[]{3,4,5,1,2});
+        TreeNode t = TreeNode.createBinaryTreeFromArray(new Integer[]{4,1,2});
+        System.out.println("is Subtree? " + traverse(s, t));
+        TreeNode s0 = TreeNode.createBinaryTreeFromArray(new Integer[]{3,4,5,1,2,null,null,0});
+        TreeNode t0= TreeNode.createBinaryTreeFromArray(new Integer[]{4,1,2});
+        System.out.println("is Subtree? false = " + traverse(s0, t0));
+        TreeNode s1 = TreeNode.createBinaryTreeFromArray(new Integer[]{1,null,1,null,1,null,1,null,1,null,1,null,1,null,1,null,1,null,1,null,1,2});
+        TreeNode t1 = TreeNode.createBinaryTreeFromArray(new Integer[]{1,null,1,null,1,null,1,null,1,null,1,2});
+        System.out.println("is Subtree? " + traverse(s1, t1));
+        TreeNode s2 = TreeNode.createBinaryTreeFromArray(new Integer[]{1,1});
+        TreeNode t2 = TreeNode.createBinaryTreeFromArray(new Integer[]{1});
+        System.out.println("is Subtree? " + traverse(s, t));
+    }
+   
+    public String toString() { 
+        return "Subtree of Another Tree ([I] *) [https://leetcode.com/problems/subtree-of-another-tree/]";
+    }
+}
 
 public class YamaInterview
 {
     public static void main(String[] args)
     {
         IInterviewQuestion[] questions = new IInterviewQuestion[] {
+            new JavaCollections(),
             new TopKFrequentlyMentionedKeywords(),
             new RottintOranges(),
             new CriticalRoutersOrConnections(),
@@ -1277,7 +1662,10 @@ public class YamaInterview
             new MostCommonWord(),
             new SubstringsOfSizeKwithKDistinctChars(),
             new SubstringsOfExactlyKDistinctChars(),
-            new LongestStringWithThreeConsecutiveCharacters()
+            new LongestStringWithThreeConsecutiveCharacters(),
+            new PrisonCellsAfterNDays(),
+            new GenerateParentheses(),
+            new SubtreeOfAnotherTree()
         }; 
 
         int count = 1;
