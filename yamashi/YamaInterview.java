@@ -50,6 +50,7 @@ class Helper
         if(msg!=null) System.out.println(msg + " =  " + right + " => " + equalsTo(left,right) );
     }
 
+
     public static <T> boolean equalsTo(List<List<T>> left, T[][] right)
     {
         if(left.size() != right.length) return false;
@@ -67,6 +68,32 @@ class Helper
         }
         return true;
     }
+
+    public static boolean arrayEquals(int[][] left, int[][] right)
+    {
+        if(left.length != right.length) return false;
+        System.out.println("\n * compare two arrays: ");
+
+        for(int i=0;i<left.length;i++)
+        {
+            int[] l2 = left[i];
+            int[] r2 = right[i];
+            System.out.print(Arrays.toString(l2) + " == " + Arrays.toString(r2) + " ?");
+            for(int j=0;j < l2.length;j++)
+            {
+                int ls = l2[j];
+                int rs = r2[j];
+                if(ls!=rs) 
+                {
+                    System.out.println(" **FALSE**");
+                    return false; 
+                }
+            }
+            System.out.println(" true");
+        }
+        return true;
+    }
+
 }
 
 class TopKFrequentlyMentionedKeywords implements IInterviewQuestion
@@ -1372,6 +1399,9 @@ class KClosetPointstoOrigin implements IInterviewQuestion  {
 
     public void performTest()
     {
+        System.out.println("KClosetPoints_Sort: " + Helper.arrayEquals(KClosetPoints_Sort(new int[][] { {-5,4}, {-6,-5}, {4,6} }, 2) , new int[][] { {-5, 4}, {4,6} } ) ) ;
+        System.out.println("KClosetPoints_PQ: " + Helper.arrayEquals(KClosetPoints_PQ(new int[][] { {-5,4}, {-6,-5}, {4,6} }, 2) , new int[][] { {-5, 4}, {4,6} } ) );
+        System.out.println("KClosetPoints_QSelect: " + Helper.arrayEquals(KClosetPoints_QSelect(new int[][] { {-5,4}, {-6,-5}, {4,6} }, 2) , new int[][] { {-5, 4}, {4,6} } ) );
 
     }
 
@@ -1720,9 +1750,90 @@ class SubTreeWithMaximumAverage implements IInterviewQuestion
     }
 
     public String toString() { 
-        return "SubTree With Maximum Average () []";
+        return "SubTree With Maximum Average [https://leetcode.com/discuss/interview-question/349617]";
     }
 
+}
+
+
+
+class MinimumCostToConnectRope implements IInterviewQuestion
+{
+    public int minCostToConnectRope(int[] ropes)
+    {
+        int res = 0;
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        for(int len : ropes) { minHeap.add(len); }
+
+        while(minHeap.size() > 1)
+        {
+            int combinedLen = minHeap.poll() + minHeap.poll();
+            res += combinedLen;
+            minHeap.offer(combinedLen);
+        }
+
+        return res;
+    }
+
+    public void performTest()
+    {
+        Helper.equals(minCostToConnectRope(new int[]{2, 4, 3}) , 14, "[2,4,3]: ");
+        Helper.equals(minCostToConnectRope(new int[]{8, 4, 6, 12}) , 58, "[8,4,6,12]: ");
+        Helper.equals(minCostToConnectRope(new int[]{2, 2, 3, 3}) , 20, "[2, 2, 3, 3]: ");
+        Helper.equals(minCostToConnectRope(new int[]{1, 2, 5, 10, 35, 89}) , 224, "[1, 2, 5, 10, 35, 89]: ");
+
+    }
+
+    public String toString() { 
+        return "Minimum Time to merge files/Minimum Cost to connect Ropes ([E]) [https://leetcode.com/discuss/interview-question/344677]";
+    }
+}
+
+
+class OptimalUtilization implements IInterviewQuestion
+{
+    // get cloest target sum from two non-sorted array
+    public List<int[]> getOptimalUtilization(int[][] a, int[][] b, int target)
+    {
+        Arrays.sort(a, (i,j) -> i[1]-j[1] );
+        Arrays.sort(b, (i,j) -> i[1]-j[1] );
+        int i = 0;
+        int j = b.length-1;
+        List<int[]> res = new ArrayList<>();
+
+        while(i < a.length && j >= 0)
+        {
+            int sum = a[i][1] + b[j][1];
+            if(sum > target)
+            {
+                j--;
+            }
+            else // less or equal
+            {
+                System.out.print("added  | ");
+                res.add(new int[]{a[i][0], b[j][0]});
+                
+                int tmp = j; // get all duplicate values on b
+                while(tmp > 0 && b[tmp][1] == b[tmp-1][1] ) res.add(new int[]{a[i][0], b[tmp--][0]});
+
+                //deduplicate
+                while(i < a.length && a[i][1]==a[i+1][1]) i++;
+                i++;
+            }
+        }
+
+        return res;
+    }
+
+    public void performTest()
+    {
+        Helper.equals(getOptimalUtilization(new int[][] { {1,2}, {2,4},{3,6}}, new int[][]{{1,2}}, 7 ), 
+        new int[][] {{2,1}}, " ... " );
+    }
+
+    public String toString() { 
+        return "Optimal Utilization ([E]) [https://leetcode.com/discuss/interview-question/344677]";
+    }
 }
 
 public class YamaInterview
@@ -1732,27 +1843,34 @@ public class YamaInterview
         IInterviewQuestion[] questions = new IInterviewQuestion[] {
             new JavaCollections(),
             new TopKFrequentlyMentionedKeywords(),
-            new RottintOranges(),
+            new RottintOranges(), // Zombin in Matrix
             new CriticalRoutersOrConnections(),
-            new SearchSuggestionSystem(),
+            new SearchSuggestionSystem(), // Product Suggestions
             new NumberOfClusters() , 
             new ReorderDataInLogFile(),
             new PartitionLabel(),
+            new OptimalUtilization(),
+            new MinimumCostToConnectRope(),
             new TreasureIsland(),
             new TreasureIsland2(),
             new FindPairWithGivenSum(),
             new CopyRandomLinkedList(),
             new MergeTwoSortedList(),
+            new SubtreeOfAnotherTree(),
             new SearchMatrix(),
-            new FindUniquePairsWithGivenSum(),
             new FavoriteGenres(),
-            new MostCommonWord(),
+            new FindUniquePairsWithGivenSum(),
             new SubstringsOfSizeKwithKDistinctChars(),
+            // Max of Min Altitudes
+            // Longest Palindromic substring
             new SubstringsOfExactlyKDistinctChars(),
             new LongestStringWithThreeConsecutiveCharacters(),
-            new PrisonCellsAfterNDays(),
+            new MostCommonWord(),
+            new KClosetPointstoOrigin(),
             new GenerateParentheses(),
-            new SubtreeOfAnotherTree(),
+            // Min Cost to connect all nodes
+            // Min Cost to Repait Edges
+            new PrisonCellsAfterNDays(),
             new SubTreeWithMaximumAverage()
         }; 
 
@@ -1760,6 +1878,7 @@ public class YamaInterview
         for(IInterviewQuestion q: questions) { 
             System.out.println("(" + count + ") " + q);
             q.performTest(); count++;
+            System.out.println("\n---------------------------\n");
         }
     }
 }
