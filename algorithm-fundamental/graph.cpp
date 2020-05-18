@@ -4,6 +4,7 @@
 #include <queue>
 #include <string>
 #include <set>
+#include <stack>
 
 using namespace std;
 
@@ -34,7 +35,7 @@ public:
 			}
 			cout << endl;
 		}
-	}ASSAASSA
+	}
 
 	void bfs(T src)
 	{
@@ -238,7 +239,7 @@ public:
 
 		}
 
-
+		cout << endl;
 	}
 
 	bool BFS_detectCycle_In_UndirectedGraph(T src)
@@ -270,6 +271,79 @@ public:
 		}
 
 		return false;
+	}
+
+	bool isCyclicHelper(T node, map<T, bool> &visited, map<T, bool> inStack) {
+		visited[node] = true;
+		inStack[node] = true; // it is now in the visiting path.
+
+		for (T neighbour : adjList[node]) {
+			if (!visited[neighbour] && isCyclicHelper(neighbour, visited, inStack) || inStack[neighbour])
+			{
+				return true;
+			}
+		}
+
+		inStack[node] = false;
+		return false;
+	}
+
+	bool DFS_detectCycle_In_directedGraph(T src)
+	{
+		map<T, bool> visited;
+		map<T, bool> inStack;
+
+		for (auto pair : adjList)
+		{
+			T node = pair.first;
+			if (!visited[node] && isCyclicHelper(node, visited, inStack)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void DFS_AllPathsHelper(T node, T dest, map<T, bool> visited, map<T, bool> inStack, list<T> &path )
+	{
+		visited[node] = true;
+		inStack[node] = true;
+		path.push_back(node);
+
+		if (node == dest)
+		{
+			for (auto e : path)
+			{
+				cout << e << " => ";
+			}
+			cout << endl;
+		}
+
+		for (T adjNode : adjList[node])
+		{
+			if (!visited[adjNode] )
+			{ 
+				DFS_AllPathsHelper(adjNode, dest, visited, inStack, path);
+			}
+		}
+
+		path.remove(node);
+	}
+
+	void DFS_AllPaths(T src, T dest)
+	{
+		cout << "All possible paths from " << src << " to " << dest << ":" << endl;
+		map<T, bool> visited;
+		map<T, bool> inStack;
+		list<T> path;
+
+		for (auto pair : adjList)
+		{
+			T node = pair.first;
+			if (node== src && !visited[node] ) {
+				DFS_AllPathsHelper(node, dest, visited, inStack, path);
+			}
+		}
+
 	}
 
 	// Amazon inteview questions
@@ -329,11 +403,11 @@ public:
 				low[node] = min(low[node], low[adjNode]);
 				
 				// (1) u is root of DFS tree and has two or more chilren. 
-				if (parent[node] == -1 && childCount > 1)
+				if (parent[node] == node && childCount > 1)
 					cutPoints.insert(node);
 				// (2) If u is not root and low value of one of its child is more 
 				// than discovery value of u. 
-				else if (parent[node] != -1 && low[adjNode] >= disc[node]) // > for bridges, >= for points
+				else if (parent[node] != node && low[adjNode] >= disc[node]) // > for bridges, >= for points
 					cutPoints.insert(node);
 			}
 			else if (adjNode != parent[node]) // Update low value of u for parent function calls.
@@ -353,7 +427,7 @@ public:
 		for (auto pair : adjList)
 		{
 			T node = pair.first;
-			parent[node] = -1; // any node can potentially be a root
+			parent[node] = node; // any node can potentially be a root
 			low[node] = disc[node] = 0;
 			visited[node] = false;
 		}
@@ -407,6 +481,37 @@ public:
 
 };
 
+template <typename T>
+class WeightGraph
+{
+private:
+	map<T, list<pair<T, int>> > adjList;
+public:
+	void addEdge(T u, T v, int weight, bool biDir = true)
+	{
+		adjList[u].push_back( make_pair(v, weight) );
+		if (biDir) { adjList[v].push_back( make_pair(u , weight) ); }
+	}
+
+	void print()
+	{
+		for (auto pair : adjList)
+		{
+			int node = pair.first;
+			cout << "node " << node << " => ";
+			for (auto wAdjPair : adjList[node])
+			{
+				T adjNode = wAdjPair.first;
+				int weight = wAdjPair.second;
+
+				cout << "(" << adjNode << "," << weight  << ") , ";
+			}
+			cout << endl;
+		}
+	}
+	
+};
+
 int main(int argc, char* argv[])
 {
 	Graph<int> g;
@@ -433,6 +538,7 @@ int main(int argc, char* argv[])
 	cout << "5,6 cycle:" << g.BFS_detectCycle_In_UndirectedGraph(5) << endl;
 	cout << "7-8-9 cycle:" << g.BFS_detectCycle_In_UndirectedGraph(7) << endl;
 
+	g.DFS_AllPaths(0, 4);
 
 	Graph<string> g1;
 	g1.addEdge("English", "HTML", false);
@@ -457,6 +563,20 @@ int main(int argc, char* argv[])
 
 	g2.listArticulationPoints();
 	g2.listBridges();
+	g2.DFS_AllPaths(0, 4);
+
+	Graph<int> g3;
+	g3.addEdge(0, 2, false);
+	g3.addEdge(0, 1, false);
+	g3.addEdge(2, 3, false);
+	g3.addEdge(2, 4, false);
+	g3.addEdge(3, 0, false);
+	g3.addEdge(4, 5, false);
+	g3.addEdge(1, 5, false);
+	g3.DFS_AllPaths(0, 5);
+
+	cout << "DFS Detect Cycle in directed Graph:" << g3.DFS_detectCycle_In_directedGraph(0) << endl;
+
 
 	return 0;
 }
