@@ -846,43 +846,30 @@ class SubstringsOfSizeKwithKDistinctChars implements IInterviewQuestion
 class SubstringsOfExactlyKDistinctChars implements IInterviewQuestion
 {
 
-    public List<String> substringswithExactlyKDistinctChars(String s, int k)
+    public int substringswithExactlyKDistinctChars(String s, int K)
     {
-        List<String> res = new ArrayList<>();
-        HashMap<Character,Integer> m = new HashMap<>();
-
-        for(int i=0, j = 0;i < s.length() && j < s.length(); )
+        Window<Character> w1 = new Window<Character>();
+        Window<Character> w2 = new Window<Character>();
+        int count = 0, left1=0, left2 = 0;
+        for(int i=0;i<s.length();i++)
         {
-            char end = s.charAt(i);
-            char start = s.charAt(j);
-
-            if(m.getOrDefault(end, 0) == 0 && m.size() <= 2)
-            {
-                m.put(end, m.getOrDefault(end, 0)+1);
-                i++;
-
-            }
-            else 
-            {
-                m.put(start, m.getOrDefault(start,0)-1);
-                j++;
-            }
-
-
-         //   System.out.print(j + "," + i + " = " + m.get(end) + ",size=" + m.size() + "|");
-            if(m.size()==2) res.add(s.substring(j,i));            
-
+            Character c = s.charAt(i);
+            w1.add(c);
+            w2.add(c);
+            while(w1.kinds() > K) w1.remove(s.charAt(left1++));
+            while(w2.kinds() >= K) w2.remove(s.charAt(left2++));
+            count += left2-left1;
         }
-        return res;
+        return count;
     }
 
     public void performTest()
     {
-        Helper.equals( substringswithExactlyKDistinctChars("pqpqs",2), 
-        new String[] {"pq", "pqp", "pqpq", "qp", "qpq", "pq", "qs"}, "SubString ");
+        Helper.equals( substringswithExactlyKDistinctChars("pqpqs",2), 7, "pqpqs has 7 number of substring stasified the ans. ");
+//        new String[] {"pq", "pqp", "pqpq", "qp", "qpq", "pq", "qs"}, "SubString ");
     }
     
-    public String toString() { return "Substrings with exactly K Distinct Chars ([I]**) [https://leetcode.com/discuss/interview-question/370157]: ";}
+    public String toString() { return "Substrings with exactly K Distinct Chars ([I]**) [https://leetcode.com/discuss/interview-question/370157  https://leetcode.com/problems/subarrays-with-k-different-integers/]: ";}
 }
 
 class TreasureIsland implements IInterviewQuestion
@@ -1219,22 +1206,43 @@ class CopyRandomLinkedList  implements IInterviewQuestion {
 }
 
 class LongestStringWithThreeConsecutiveCharacters  implements IInterviewQuestion {
+    
+    public void LongestStringWithAtMostKChar(Map<Character, int[]> map, int K, StringBuilder result) {
+        PriorityQueue<Map.Entry<Character, int[]>> q = new PriorityQueue<>((a, b) -> (b.getValue()[0] - a.getValue()[0]));
+        for(Map.Entry<Character, int[]> e : map.entrySet()) {
+            q.add(e);
+        }
+        boolean f = false;
+        while(!q.isEmpty()) {
+            Map.Entry<Character, int[]> current = q.poll();
+            if(current.getValue()[0] > 0 && current.getValue()[1] < K && !f) {
+                result.append(current.getKey());
+                map.put(current.getKey(), new int[]{current.getValue()[0] - 1, current.getValue()[1] + 1});
+                f = true;
+            } else {
+                map.put(current.getKey(), new int[]{current.getValue()[0], 0});   
+            }
+        }
+        if(f) {
+            LongestStringWithAtMostKChar(map, K, result);
+        }
+    }
 
-    public String LongestStringWithKConsecutiveCharacters(int k)
+    // INCORRECT. Find the right solution online.
+    public String LongestStringWithKConsecutiveCharacters(HashMap<Character, Integer> m, int k)
     {
-        int maxRepeat = k- 1;
-        HashMap<Character, Integer> m  =new HashMap<>(); 
-        m.put('a',1);
-        m.put('b',2);
-        m.put('c',3);
-        m.put('d',6);
-        m.put('e',7);
-        m.put('f',7);
-        m.put('g',9);
-        m.put('i',9);
+        System.out.print("K = " + k + " | ");
+        int maxRepeat = k;
+        PriorityQueue<Character> pq = new PriorityQueue<>( (c1, c2) -> ( m.get(c1)==m.get(c2) ? c1-c2 :m.get(c2)-m.get(c1) ) );
+        
+        Iterator<Map.Entry<Character,Integer>> ite = m.entrySet().iterator();
 
-        PriorityQueue<Character> pq = new PriorityQueue<>( (c1, c2) -> ( m.get(c2)-m.get(c1)));
-
+        while(ite.hasNext())
+        {
+            Map.Entry<Character,Integer> e = ite.next();
+            if(e.getValue()<=0) ite.remove();
+        }
+        
         for(Character c : m.keySet()) { pq.add(c); }
 
         StringBuilder s = new StringBuilder();
@@ -1246,6 +1254,7 @@ class LongestStringWithThreeConsecutiveCharacters  implements IInterviewQuestion
 
             if(lastChar == c)
             {
+               if(pq.isEmpty()) return s.toString();// + ".... (unable to finish) : NOT POSSIBLE ";
                 Character next = pq.poll();
                 pq.add(c); // add back;
                 c = next;
@@ -1273,12 +1282,65 @@ class LongestStringWithThreeConsecutiveCharacters  implements IInterviewQuestion
 
     public void performTest()
     {
-        System.out.println(LongestStringWithKConsecutiveCharacters(3));
+        HashMap<Character, Integer> m  =new HashMap<>(); 
+/*
+        m.put('a',1);
+        m.put('b',2);
+        m.put('c',3);
+        m.put('d',6);
+        m.put('e',7);
+        m.put('f',7);
+        m.put('g',9);
+        m.put('i',9);
+
+        System.out.println(m + " => "+  LongestStringWithKConsecutiveCharacters(m,3));
+
+        m.clear();*/
+        m.put('a',1);
+        m.put('b',1);
+        m.put('c',7);
+        System.out.println(m + " => "+  LongestStringWithKConsecutiveCharacters(m,3));
+        
+        m.clear();
+        m.put('a',2);
+        m.put('b',2);
+        m.put('c',1);
+        System.out.println(m + " => "+  LongestStringWithKConsecutiveCharacters(m,2));
+
+        m.clear();
+        m.put('a',7);
+        m.put('b',1);
+        m.put('c',0);
+        System.out.println(m + " => "+  LongestStringWithKConsecutiveCharacters(m,2));
+
+        StringBuilder s = new StringBuilder();
+        HashMap<Character, int[]> m2  =new HashMap<>(); 
+        m2.put('a', new int[]{1, 0});
+        m2.put('b', new int[]{1, 0});
+        m2.put('c', new int[]{7, 0});
+
+        LongestStringWithAtMostKChar(m2, 3, s);
+        System.out.println(m2 + " => " + s);
+
+        m2.clear();
+        m2.put('a', new int[]{2, 0});
+        m2.put('b', new int[]{2, 0});
+        m2.put('c', new int[]{1, 0});
+        
+        LongestStringWithAtMostKChar(m2, 2, s);
+        System.out.println(m2 + " => " + s);
+
+        m2.clear();
+        m2.put('a', new int[]{7, 0});
+        m2.put('b', new int[]{1, 0});
+        m2.put('c', new int[]{0, 0});        
+        LongestStringWithAtMostKChar(m2, 2, s);
+        System.out.println(m2 + " => " + s);
     }
 
     
     public String toString() { 
-        return "Copy Random Linked List ([N]**) [https://leetcode.com/problems/copy-list-with-random-pointer/] ";
+        return "Longest String With 3 or K Consecutive Characters ([N]**) [https://leetcode.com/problems/reorganize-string/  https://leetcode.com/problems/longest-happy-string/ ] ";
     }
 
 }
@@ -1791,7 +1853,8 @@ class MinimumCostToConnectRope implements IInterviewQuestion
 
 
 class OptimalUtilization implements IInterviewQuestion
-{
+{ // need to fix this . INCORRECT result.
+
     // get cloest target sum from two non-sorted array
     public List<int[]> getOptimalUtilization(int[][] a, int[][] b, int target)
     {
@@ -1800,6 +1863,7 @@ class OptimalUtilization implements IInterviewQuestion
         int i = 0;
         int j = b.length-1;
         List<int[]> res = new ArrayList<>();
+        int max = Integer.MIN_VALUE;
 
         while(i < a.length && j >= 0)
         {
@@ -1810,16 +1874,31 @@ class OptimalUtilization implements IInterviewQuestion
             }
             else // less or equal
             {
+                if(max <= sum) {
+                    if(max < sum) {
+                        max = sum;
+                        res.clear();
+                    }
+
                 System.out.print("added  | ");
                 res.add(new int[]{a[i][0], b[j][0]});
                 
-                int tmp = j; // get all duplicate values on b
-                while(tmp > 0 && b[tmp][1] == b[tmp-1][1] ) res.add(new int[]{a[i][0], b[tmp--][0]});
+                int tmp = j-1; // get all duplicate values on b
+                while(tmp >= 0 && b[tmp][1] == b[tmp+1][1] ) res.add(new int[]{a[i][0], b[tmp--][0]});
+                
+                }
 
                 //deduplicate
                 while(i < a.length && a[i][1]==a[i+1][1]) i++;
                 i++;
             }
+        }
+
+        System.out.println("res:");
+        for(int[]  arr: res)
+        {
+
+            System.out.println(Arrays.toString(arr));
         }
 
         return res;
@@ -1836,6 +1915,244 @@ class OptimalUtilization implements IInterviewQuestion
     }
 }
 
+
+
+class MergeIntervals implements IInterviewQuestion
+{
+    public int[][] merge(int[][] intervals) {
+		if (intervals== null || intervals.length <= 1) return intervals;
+
+		// Sort by ascending starting point
+		Arrays.sort(intervals, (i,j) -> i[0]==j[0] ? i[1]-j[1]:i[0]-j[0]);
+
+		LinkedList<int[]> llRes = new LinkedList<>();
+		llRes.add(intervals[0]);
+        
+		for (int i=1;i < intervals.length;i++) {
+            int[] merged = llRes.getLast();                        
+			if (intervals[i][0] <= merged[1]) // Overlapping intervals
+            {
+                llRes.removeLast();
+				merged[1] = Math.max(merged[1], intervals[i][1]);
+                llRes.addLast(merged);
+            }
+			else { // disjoint intervals                          
+				llRes.add(intervals[i]);
+			}
+		}
+
+		return llRes.toArray(new int[llRes.size()][]);
+    }
+
+    public void performTest()
+    {
+        int[][] res = merge(new int[][] { {1,3},{2,6},{8,10},{15,18} });
+        Helper.arrayEquals(res, new int[][] { {1,6}, {8,10}, {15,18} } );
+    }
+
+    public String toString() { 
+        return "Merge Intervals (*) [https://leetcode.com/problems/merge-intervals/]";
+    }
+}
+
+class Window<E>
+{
+    Map<E,Integer> m = new HashMap<>();
+    int kinds = 0; // the total number of types available in the map
+    
+    public Window() {}
+    
+    public void add(E x)
+    {
+        m.put(x, m.getOrDefault(x,0)+1);
+        if(m.get(x)==1) kinds++;
+    }
+    
+    public void remove(E x)
+    {
+        m.put(x, m.get(x)-1);
+        if(m.get(x)==0) kinds--;
+    }
+    
+    public int kinds() { return kinds; }
+}
+
+class SubarraysWithKDifferentIntegers implements IInterviewQuestion
+{
+    //Longest SubString With K Distinct Characters
+
+    
+    public int subarraysWithKDistinct(int[] A, int K) {        
+        Window<Integer> w1 = new Window<Integer>();
+        Window<Integer> w2 = new Window<Integer>();
+        int left1=0, left2 =0;
+        int count = 0;
+        
+        for(int i=0;i < A.length;++i)
+        {
+            int x = A[i];
+            w1.add(x);
+            w2.add(x);
+            
+            while(w1.kinds() > K )
+                w1.remove(A[left1++]);
+            
+            while(w2.kinds() >= K )
+                w2.remove(A[left2++]);
+            
+            count+= left2-left1;            
+        }
+        
+        return count;
+    }
+
+    public void performTest()
+    {
+        Helper.equals( subarraysWithKDistinct(new int[]{1,2,1,2,3}, 2) , 7, "{1,2,1,2,3} = ");
+        Helper.equals( subarraysWithKDistinct(new int[]{1,2,1,3,4}, 3) , 3, "{1,2,1,3,4} = ");
+
+    }
+
+    public String toString() { 
+        return "Subarrays with K Different Integers (*) [https://leetcode.com/problems/subarrays-with-k-different-integers/]";
+    }
+
+ }
+
+class FindNUniqueIntegersSumUpToZero implements IInterviewQuestion {
+
+    public int[] sumZero(int n) {
+        
+        int half = n/2;
+        int[] arr = new int[n];
+        for(int i=0;i< half;i++)
+        {
+            arr[i]=-(n-i);
+            arr[n-i-1]= (n-i);
+        }
+                    
+        return arr;
+    }
+
+    public void performTest()
+    {
+        for(int i=0;i<5;i++)
+        {
+            int n = (int)(Math.random()*20+1);
+            int[] res = sumZero(n);
+            
+            int sum = Arrays.stream(res).reduce(0, (a,b) -> a + b);
+            System.out.println("n:" + n  + ", " + Arrays.toString(res) + ", sum = 0 ? => " + (sum==0));            
+
+        }
+
+    }
+
+    public String toString() { 
+        return "Subarrays with K Different Integers (*) [https://leetcode.com/problems/subarrays-with-k-different-integers/]";
+    }
+}
+
+class NthGeometricProgression implements IInterviewQuestion  {
+
+    public char[] getNthGP(double secondTerm, double thirdTerm, int nth)
+    {
+        double r = thirdTerm/ secondTerm;
+        double a = secondTerm/r;
+        double result = a*Math.pow(r, nth-1);
+        String str = String.valueOf(result);
+        int pos = str.indexOf('.');
+
+        if(pos > 0) // trim up to 
+        {
+           int decimalPlaces = 3;
+           str = str.substring(0, Math.min(pos+decimalPlaces+1, str.length())); 
+        }
+
+    //    System.out.println("res => [" + str + "]");
+        return str.toCharArray();
+    }
+
+    public void performTest()
+    {
+        Helper.equals(String.valueOf( getNthGP(1,2,4) ), "4.0", "seoncd Term:1, thrid Term: 2, Find 4th Term = ? ");
+    }
+
+    public String toString() { 
+        return "Nth Geometric Progression ([I]*) [https://leetcode.com/discuss/interview-question/432213/]";
+    }
+}
+
+class LongestPlaindromicSubstring implements IInterviewQuestion {
+
+    public String longestPalindrome(String s) {
+        if(s==null || s.length() < 2) return s;
+        
+        int left = 0, right = 0;
+        int len = s.length();
+        boolean[][] isPalindrome = new boolean[len][len];        
+        // P(i,j) answers the question 'is the substring from index i to index j  is a paindrome?'.
+        
+        // j starts from 1. must compare at least two chars. one char from j, another char from i.
+        
+        for(int j=1; j < s.length();j++) 
+            for(int i=0; i < j ; i++)
+            {
+                //j-i <=2 means current length doesnt have an inner string to check.
+                boolean isInnerPalindrome = isPalindrome[i+1][j-1] || j-i <=2;
+                
+                if(isInnerPalindrome && s.charAt(i)==s.charAt(j) )
+                {
+                     isPalindrome[i][j] = true;
+                    if(j-i > right-left) // update current max length
+                    {
+                        right = j;
+                        left = i;
+                    }
+                }
+            }
+        return s.substring(left,right+1);
+    }
+
+    public String longestPalindrome_ExpandFromCenter(String s) {
+        String max = "";
+        
+        for(int i=0;i< s.length();i++)
+        {
+            String s1 = expandFromCenter(s, i, i);
+            String s2 = expandFromCenter(s, i, i+1);
+            String curMax = (s1.length() > s2.length()) ? s1:s2;
+            max = (curMax.length() > max.length()) ? curMax:max;            
+        }
+        
+        return max;
+    }
+    
+    public String expandFromCenter(String s, int l, int r)
+    {
+        while(l>=0 && r < s.length() && s.charAt(l) == s.charAt(r))
+        { 
+            l--; r++; 
+        }
+        
+        int len = ((r-1)-(l+1));        
+        return s.substring(l+1, r);
+    }
+
+    public void performTest()
+    {
+        Helper.equals(longestPalindrome("babad"),  "bab", " longest plaindrome ?" );
+        Helper.equals(longestPalindrome("cbbd"),  "bab", " longest plaindrome ?" );
+
+        Helper.equals(longestPalindrome_ExpandFromCenter("babad"),  "bab", "(EXPAND from Center) longest plaindrome ?" );
+        Helper.equals(longestPalindrome_ExpandFromCenter("cbbd"),  "bab", "(EXPAND from Center)  longest plaindrome ?" );
+    }
+
+    public String toString() { 
+        return "Longest Palindromic Substring ([I]**) [https://leetcode.com/problems/longest-palindromic-substring/]";
+    }
+}
+
 public class YamaInterview
 {
     public static void main(String[] args)
@@ -1849,7 +2166,7 @@ public class YamaInterview
             new NumberOfClusters() , 
             new ReorderDataInLogFile(),
             new PartitionLabel(),
-            new OptimalUtilization(),
+            new OptimalUtilization(), // incorrect
             new MinimumCostToConnectRope(),
             new TreasureIsland(),
             new TreasureIsland2(),
@@ -1857,21 +2174,28 @@ public class YamaInterview
             new CopyRandomLinkedList(),
             new MergeTwoSortedList(),
             new SubtreeOfAnotherTree(),
-            new SearchMatrix(),
+            new SearchMatrix(), // incorrect
             new FavoriteGenres(),
             new FindUniquePairsWithGivenSum(),
-            new SubstringsOfSizeKwithKDistinctChars(),
+
+            new SubstringsOfExactlyKDistinctChars(), // INCORRECT
+            new SubarraysWithKDifferentIntegers(),
+            new LongestStringWithThreeConsecutiveCharacters(), // longest numbers with K consecutive numbers. (INCORRECT?)
             // Max of Min Altitudes
-            // Longest Palindromic substring
-            new SubstringsOfExactlyKDistinctChars(),
-            new LongestStringWithThreeConsecutiveCharacters(),
+            new LongestPlaindromicSubstring(),
+            new SubstringsOfSizeKwithKDistinctChars(),
             new MostCommonWord(),
             new KClosetPointstoOrigin(),
             new GenerateParentheses(),
             // Min Cost to connect all nodes
             // Min Cost to Repait Edges
             new PrisonCellsAfterNDays(),
-            new SubTreeWithMaximumAverage()
+            new SubTreeWithMaximumAverage(),
+            // Other
+            new MergeIntervals(),
+
+            new FindNUniqueIntegersSumUpToZero(),
+            new NthGeometricProgression()
         }; 
 
         int count = 1;
@@ -1880,5 +2204,6 @@ public class YamaInterview
             q.performTest(); count++;
             System.out.println("\n---------------------------\n");
         }
+
     }
 }
