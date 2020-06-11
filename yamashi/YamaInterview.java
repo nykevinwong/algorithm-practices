@@ -15,9 +15,16 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.SortedMap;
 import java.util.Map.Entry;
+
+
 import java.util.Iterator;
 
 interface IInterviewQuestion
+{
+    public void performTest();
+}
+
+interface IImportTechnique
 {
     public void performTest();
 }
@@ -54,17 +61,24 @@ class Helper
     public static <T> boolean equalsTo(List<List<T>> left, T[][] right)
     {
         if(left.size() != right.length) return false;
+        System.out.println("\n * compare list and array: ");
 
         for(int i=0;i<left.size();i++)
         {
             List<T> l2 = left.get(i);
             T[] r2 = right[i];
+            System.out.print(Arrays.toString(l2.toArray()) + " == " + Arrays.toString(r2) + " ?");
             for(int j=0;j<l2.size();j++)
             {
                 T ls = l2.get(j);
                 T rs = r2[j];
-                if(!ls.equals(rs)) return false;
+                if(!ls.equals(rs)) 
+                {
+                    System.out.println(" **FALSE**");
+                    return false; 
+                }
             }
+            System.out.println(" true");
         }
         return true;
     }
@@ -95,6 +109,222 @@ class Helper
     }
 
 }
+
+class BinarySearch implements IInterviewQuestion, IImportTechnique 
+{
+
+    public int binarySearch(int[] arr, int key, boolean lowerBound)
+    {
+        int left = 0;
+        int right = arr.length - 1;
+        int lastKeyPos = -1;
+
+        while(left <= right)
+        {
+            int mid = (left+right) / 2;
+            int cur  = arr[mid];
+
+            if(key > cur) left = mid+1;
+            else if(key < cur) right = mid-1;
+            else // key == cur
+            {
+                lastKeyPos = mid;
+
+                if(lowerBound) right = mid-1;
+                else left = mid+1;
+            }
+        
+        }
+
+        return (lastKeyPos==-1) ? -(left+1) : lastKeyPos;
+    }
+
+    public void performTest()
+    {
+        int[] nums = new int[] { 1,2,2,2,2,3,3,3,4,4,6,6,6,7,8,9,10};
+        
+
+        System.out.print("Array: ");
+        for(int i=0;i < nums.length; i++) System.out.print(String.format("[%2s]", nums[i]));
+        System.out.println();
+
+        System.out.print("Pos:   ");
+        for(int i=0;i < nums.length; i++) System.out.print(String.format("{%2s}", i));
+        System.out.println();
+
+        System.out.println("\nLowerBound BinarySearch");
+        for(int i=0;i < 12; i++)
+        {
+            int insertPosition =  binarySearch(nums, i, true);
+            System.out.println("key = " + i + " => " + insertPosition);
+        }
+
+        System.out.println("\nUpperBound BinarySearch");
+        for(int i=0;i < 12; i++)
+        {
+            int insertPosition =  binarySearch(nums, i, false);
+            System.out.println("key = " + i + " => " + insertPosition);
+        }
+
+        System.out.println("Positive insert position = the actual found key position.");
+        System.out.println("Negative insert postion (-insertPos -1) = the position of the least integer greater than key ");
+    }
+
+    public String toString() { 
+        return "Binary Search []";
+    }
+}
+
+class JavaCollections implements IInterviewQuestion, IImportTechnique  {
+    public void performTest()
+    {
+        System.out.println("Priorty Queue:");
+        PriorityQueue<Integer> pq=new PriorityQueue<>(); // min heap/priority queue by deafult
+        int[] points = new int[] { 1,10,3,6,5,8,7,4,9,2}; int K = 3;
+
+        for(int pValue: points) { pq.offer(pValue); }
+
+        // print heap array content (in an array order)
+        for(Integer p: pq) { System.out.print(p+ " "); } System.out.println();        
+
+        // how to iterate through PriorityQueue without affectint pq heap content
+        Iterator itr = pq.iterator(); 
+        while (itr.hasNext()) { System.out.print(itr.next()+ " ");  } System.out.println();
+       
+        while(pq.size() > 0) { System.out.print(pq.poll()+ " "); } System.out.println();
+
+        Queue<Integer> pq2=new PriorityQueue<>(Collections.reverseOrder()); // max heap/priority queue
+
+        for(int pValue: points) { pq2.offer(pValue); }
+        while(pq2.size() > 0) { System.out.print(pq2.poll()+ " "); } System.out.println();
+   
+        // a trick to stay N*log(k) time complexity for Max Priority Queue to get top k minimum in descending order (max-heap max first out)
+        // without this trick, it's N*log(N) time complexity.
+        // Min Priority Queue = N*log(N) since you need to put all numbers into the pq first.
+        // Min Priority Queue with the trick won't work since you will get top k max in an ascending order. (min-heap min first out)
+        for(int pValue: points) 
+        {
+            pq2.offer(pValue);
+            if(pq2.size() > K)  pq2.poll();
+        }
+
+        // print the result        
+        while(!pq2.isEmpty()) { System.out.print(pq2.poll() + " "); } System.out.println();
+    
+        // add() vs offer(), remove() vs poll(), element() vs peek().
+        // add() from Collection can't return false and throw an exception if an element cannot be added.
+        // offer() from Queue returns false if an element cannot be added.
+        // when the queue is empty, element() and remove() from Collection throws NoSuchElementException, while poll() & peek() return null.
+        /*
+           add Throws:
+            IllegalStateException - if the element cannot be added at this time due to capacity restrictions
+            ClassCastException - if the class of the specified element prevents it from being added to this queue.
+                for example, adding another type of object into a non-generic ArrayList.
+            NullPointerException - if the specified element is null and this queue does not permit null elements
+            IllegalArgumentException - if some property of this element prevents it from being added to this queue
+        */
+
+        System.out.println("HashMap:");
+
+        HashMap<Integer, String> m = new HashMap<>();
+        m.put(11, "AB");
+        m.put(2, "CD");
+        m.put(33, "EF");
+        m.put(9, "GH");
+        m.put(3, "IJ");    
+
+        for(Map.Entry e: m.entrySet() ) { System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); }  System.out.println();
+
+        HashMap<Integer,String> m2 = (HashMap)m.clone();
+        
+        for(Map.Entry<Integer,String> e: m2.entrySet() ) { System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); } System.out.println();   
+        m2.clear();
+        m2.putAll(m);        Iterator mItr = m2.entrySet().iterator();
+        while(mItr.hasNext()) { Map.Entry e = (Map.Entry)mItr.next(); System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); } System.out.println();
+
+        /*  HashSet & HashMap doesn't maintain any kind of order of its elements.
+            LinkedHashSet & LinkedHashMap maintains insertion order.
+            TreeSet & TreeMap sort the entries in ascending order of keys and they don't allow null key and throw NullPointerException.
+            Set -> contains
+            Map -> containsKey, containsValue
+        */        
+
+        Set<Integer> set = m2.keySet();
+        Iterator<Integer> ite2 = set.iterator();
+        while(ite2.hasNext()) { System.out.print(ite2.next() + ","); } System.out.println();
+
+        Collection<String> values = m2.values();
+        for(String s: values) { System.out.print(s + ","); } System.out.println();
+        Iterator<String> ite3 = values.iterator();
+        while(ite3.hasNext()) { System.out.print(ite3.next() + ","); } System.out.println();
+
+        System.out.println("hello");
+
+    }
+    
+    public String toString() { 
+        return "Mastering JavaCollectionsn [https://beginnersbook.com/2013/12/how-to-loop-hashmap-in-java/]";
+    }
+}
+
+/*
+
+- Use Comparator when you need more flexibilit
+** The compareTo() method will return a positive number if one object is greater than the other, negative if it’s lower, and zero if they are the same.
+
+import java.util.Comparator;
+
+public class MyComparator implements Comparator<String>
+{
+   @Override // ascending order based on String length
+   public int compare(String x, String y) { return x.length() - y.length();}
+}
+
+or you can replace everything before Comparator using new keyword as below.
+
+Collections.sort(strArr, new Comparator<String>
+{
+   @Override // ascending order based on String length
+   public int compare(String x, String y) { return x.length() - y.length();}
+});
+
+Using Comparator with lambda expressions as below:
+Collections.sort(strArr, (x, y) -> x.length() - y.length()  );
+
+You always use compareTo for a String/object.
+Collections.sort(strArr, (s1, s2) -> s1.compareTo(s2));
+
+even shorter with
+Collections.sort(strArr, Comparator.naturalOrder() );
+
+    // ascending order means to arrange values from smallest to largest.
+    // descending order means to arrange values from largest to smallest.
+
+    // ascending order based on value
+    public int compare(Integer x, Integer y) { return x - y;}
+    // descending order based on value
+    public int compare(Integer x, Integer y) { return y - x;}
+
+    // sort by id in ascending order. when ids are the same, sort by their name in alphabetic order.
+    public int compare(User x, User y) { return x.id == y.id ? x.name.compareTo(y)  : x.id-y.id  ;}
+    (x,y) -> x.id==y.id ? x.name.compareTo(y) : x.id-y.id;
+
+    // sort by map value in ascending order. When map value are the same, sort by the name in alphabetic order.
+    public int compare(String s1, String s2) { return count.get(s1) == count.get(s2) ? s1.compareTo(s2)  : count.get(s1)-count.get(s2); }
+    (s1,s2) -> count.get(s1)==count.get(s2) ? s1.compareTo(s2) : count.get(s1)-count.get(s2);
+
+    Sorting a Map with TreeMap
+    Map<String, Integer> m  = new TreeMap<>();
+    m.put("DEF", 10);
+    m.put("ABC", 20);
+    System.out.println(m);
+
+    Sorting a Set with TreeSet
+    Set<String> s  = new TreeSet<>();
+    s.put("DEF");
+    s.put("ABC");
+    System.out.println(m);
+*/
 
 class TopKFrequentlyMentionedKeywords implements IInterviewQuestion
 {   // related problems:
@@ -250,6 +480,8 @@ class SearchSuggestionSystem implements IInterviewQuestion {
     List<String> suggestion = new LinkedList<>();
     }
 
+    // autocomplete/typehead
+    // suggest 3 items based on a searchWord currently typed.
     public List<List<String>> suggestedProducts(String[] products, String searchWord) {
         Arrays.sort(products);
         
@@ -260,8 +492,8 @@ class SearchSuggestionSystem implements IInterviewQuestion {
             Trie r = root;
             for(char c : p.toCharArray())
             {
-                if(r.sub[c-'a']==null)
-                    r.sub[c-'a'] = new Trie();
+                if(r.sub[c-'a']==null) r.sub[c-'a'] = new Trie();
+
                 r = r.sub[c-'a'];
                 
                 if(r.suggestion.size() < 3) r.suggestion.add(p);
@@ -1473,156 +1705,7 @@ class KClosetPointstoOrigin implements IInterviewQuestion  {
     }
 }
 
-class JavaCollections implements IInterviewQuestion  {
-    public void performTest()
-    {
-        System.out.println("Priorty Queue:");
-        PriorityQueue<Integer> pq=new PriorityQueue<>(); // min heap/priority queue by deafult
-        int[] points = new int[] { 1,10,3,6,5,8,7,4,9,2}; int K = 3;
 
-        for(int pValue: points) { pq.offer(pValue); }
-
-        // print heap array content (in an array order)
-        for(Integer p: pq) { System.out.print(p+ " "); } System.out.println();        
-
-        // how to iterate through PriorityQueue without affectint pq heap content
-        Iterator itr = pq.iterator(); 
-        while (itr.hasNext()) { System.out.print(itr.next()+ " ");  } System.out.println();
-       
-        while(pq.size() > 0) { System.out.print(pq.poll()+ " "); } System.out.println();
-
-        Queue<Integer> pq2=new PriorityQueue<>(Collections.reverseOrder()); // max heap/priority queue
-
-        for(int pValue: points) { pq2.offer(pValue); }
-        while(pq2.size() > 0) { System.out.print(pq2.poll()+ " "); } System.out.println();
-   
-        // a trick to stay N*log(k) time complexity for Max Priority Queue to get top k minimum in descending order (max-heap max first out)
-        // without this trick, it's N*log(N) time complexity.
-        // Min Priority Queue = N*log(N) since you need to put all numbers into the pq first.
-        // Min Priority Queue with the trick won't work since you will get top k max in an ascending order. (min-heap min first out)
-        for(int pValue: points) 
-        {
-            pq2.offer(pValue);
-            if(pq2.size() > K)  pq2.poll();
-        }
-
-        // print the result        
-        while(!pq2.isEmpty()) { System.out.print(pq2.poll() + " "); } System.out.println();
-    
-        // add() vs offer(), remove() vs poll(), element() vs peek().
-        // add() from Collection can't return false and throw an exception if an element cannot be added.
-        // offer() from Queue returns false if an element cannot be added.
-        // when the queue is empty, element() and remove() from Collection throws NoSuchElementException, while poll() & peek() return null.
-        /*
-           add Throws:
-            IllegalStateException - if the element cannot be added at this time due to capacity restrictions
-            ClassCastException - if the class of the specified element prevents it from being added to this queue.
-                for example, adding another type of object into a non-generic ArrayList.
-            NullPointerException - if the specified element is null and this queue does not permit null elements
-            IllegalArgumentException - if some property of this element prevents it from being added to this queue
-        */
-
-        System.out.println("HashMap:");
-
-        HashMap<Integer, String> m = new HashMap<>();
-        m.put(11, "AB");
-        m.put(2, "CD");
-        m.put(33, "EF");
-        m.put(9, "GH");
-        m.put(3, "IJ");    
-
-        for(Map.Entry e: m.entrySet() ) { System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); }  System.out.println();
-
-        HashMap<Integer,String> m2 = (HashMap)m.clone();
-        
-        for(Map.Entry<Integer,String> e: m2.entrySet() ) { System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); } System.out.println();   
-        m2.clear();
-        m2.putAll(m);        Iterator mItr = m2.entrySet().iterator();
-        while(mItr.hasNext()) { Map.Entry e = (Map.Entry)mItr.next(); System.out.print("{" + e.getKey() + "=>" + e.getValue() + "},"); } System.out.println();
-
-        /*  HashSet & HashMap doesn't maintain any kind of order of its elements.
-            LinkedHashSet & LinkedHashMap maintains insertion order.
-            TreeSet & TreeMap sort the entries in ascending order of keys and they don't allow null key and throw NullPointerException.
-            Set -> contains
-            Map -> containsKey, containsValue
-        */        
-
-        Set<Integer> set = m2.keySet();
-        Iterator<Integer> ite2 = set.iterator();
-        while(ite2.hasNext()) { System.out.print(ite2.next() + ","); } System.out.println();
-
-        Collection<String> values = m2.values();
-        for(String s: values) { System.out.print(s + ","); } System.out.println();
-        Iterator<String> ite3 = values.iterator();
-        while(ite3.hasNext()) { System.out.print(ite3.next() + ","); } System.out.println();
-
-        System.out.println("hello");
-
-    }
-    
-    public String toString() { 
-        return "Mastering JavaCollectionsn [https://beginnersbook.com/2013/12/how-to-loop-hashmap-in-java/]";
-    }
-}
-
-/*
-
-- Use Comparator when you need more flexibilit
-** The compareTo() method will return a positive number if one object is greater than the other, negative if it’s lower, and zero if they are the same.
-
-import java.util.Comparator;
-
-public class MyComparator implements Comparator<String>
-{
-   @Override // ascending order based on String length
-   public int compare(String x, String y) { return x.length() - y.length();}
-}
-
-or you can replace everything before Comparator using new keyword as below.
-
-Collections.sort(strArr, new Comparator<String>
-{
-   @Override // ascending order based on String length
-   public int compare(String x, String y) { return x.length() - y.length();}
-});
-
-Using Comparator with lambda expressions as below:
-Collections.sort(strArr, (x, y)  x.length() - y.length()  );
-
-You always use compareTo for a String/object.
-Collections.sort(strArr, (s1, s2) -> s1.compareTo(s2));
-
-even shorter with
-Collections.sort(strArr, Comparator.naturalOrder() );
-
-    // ascending order means to arrange values from smallest to largest.
-    // descending order means to arrange values from largest to smallest.
-
-    // ascending order based on value
-    public int compare(Integer x, Integer y) { return x - y;}
-    // descending order based on value
-    public int compare(Integer x, Integer y) { return y - x;}
-
-    // sort by id in ascending order. when ids are the same, sort by their name in alphabetic order.
-    public int compare(User x, User y) { return x.id == y.id ? x.name.compareTo(y)  : x.id-y.id  ;}
-    (x,y) -> x.id==y.id ? x.name.compareTo(y) : x.id-y.id;
-
-    // sort by map value in ascending order. When map value are the same, sort by the name in alphabetic order.
-    public int compare(String s1, String s2) { return count.get(s1) == count.get(s2) ? s1.compareTo(s2)  : count.get(s1)-count.get(s2); }
-    (s1,s2) -> count.get(s1)==count.get(s2) ? s1.compareTo(s2) : count.get(s1)-count.get(s2);
-
-    Sorting a Map with TreeMap
-    Map<String, Integer> m  = new TreeMap<>();
-    m.put("DEF", 10);
-    m.put("ABC", 20);
-    System.out.println(m);
-
-    Sorting a Set with TreeSet
-    Set<String> s  = new TreeSet<>();
-    s.put("DEF");
-    s.put("ABC");
-    System.out.println(m);
-*/
 
 class GenerateParentheses implements IInterviewQuestion {
     
@@ -1853,61 +1936,185 @@ class MinimumCostToConnectRope implements IInterviewQuestion
 
 
 class OptimalUtilization implements IInterviewQuestion
-{ // need to fix this . INCORRECT result.
+{ // quite correct result.
 
-    // get cloest target sum from two non-sorted array
-    public List<int[]> getOptimalUtilization(int[][] a, int[][] b, int target)
+    public int binarySearch(int[][] sorted, int target, boolean lowerBound)
     {
-        Arrays.sort(a, (i,j) -> i[1]-j[1] );
-        Arrays.sort(b, (i,j) -> i[1]-j[1] );
-        int i = 0;
-        int j = b.length-1;
-        List<int[]> res = new ArrayList<>();
-        int max = Integer.MIN_VALUE;
-
-        while(i < a.length && j >= 0)
+        int l = 0;
+        int r = sorted.length -1;
+        int mid = 0;
+        int lastKeyPos = -1;
+        while(l <= r)
         {
-            int sum = a[i][1] + b[j][1];
-            if(sum > target)
-            {
-                j--;
-            }
-            else // less or equal
-            {
-                if(max <= sum) {
-                    if(max < sum) {
-                        max = sum;
-                        res.clear();
-                    }
+            mid = (l+r)/2;
+            int x = sorted[mid][1];
 
-                System.out.print("added  | ");
-                res.add(new int[]{a[i][0], b[j][0]});
+            if(target < x) r= mid-1;
+            else if(target > x) l= mid +1;
+            else
+            {
+                lastKeyPos = mid;
+                if(lowerBound) r= mid-1;
+                else l = mid +1;                
+            }
+        }
+
+        return (lastKeyPos==-1) ? -(l+1): lastKeyPos;
+    }
+
+    // get target sum or closet sum answer from two non-sorted array
+    // if no target answer, we only pick the closet sum answer. 
+    // for example, target = 20. if next sum answer is 19,18, we only pick all answers of 19.
+    // better than Brute Force. 
+    public List<List<Integer>> getOptimalUtilization(int[][] a, int[][] b, int target)
+    {   
+        Arrays.sort(a, (i,j) -> i[1]-j[1]);
+        Arrays.sort(b, (i,j) -> i[1]-j[1]);
+
+        int l = 0;
+        int r = b.length-1;
+        int minCloset = Integer.MAX_VALUE;
+        List<List<Integer>> res = new ArrayList<>();
+
+        while(l < a.length && r >= 0)
+        {
+            int sum = a[l][1] + b[r][1];
+            int diff = sum - target ;
+
+            if(sum > target ) r--;
+            else {
                 
-                int tmp = j-1; // get all duplicate values on b
-                while(tmp >= 0 && b[tmp][1] == b[tmp+1][1] ) res.add(new int[]{a[i][0], b[tmp--][0]});
-                
+                if(diff<= 0)
+                {
+                    diff = Math.abs(diff);
+                    if(minCloset > diff)
+                    {
+                        minCloset = diff;
+                        res.clear(); 
+                        res.add(Arrays.asList( a[l][0], b[r][0]));                  
+                    }
+                    else if(minCloset == diff)
+                    {
+                        res.add(Arrays.asList( a[l][0], b[r][0]));                  
+                    }
                 }
 
-                //deduplicate
-                while(i < a.length && a[i][1]==a[i+1][1]) i++;
-                i++;
+                
+                l++;
             }
+
         }
 
-        System.out.println("res:");
-        for(int[]  arr: res)
+        return res;
+    }
+
+    // binary search approach
+    public List<List<Integer>> binarySearch_getOptimalUtilization(int[][] a, int[][] b, int target)
+    {   
+        Arrays.sort(a, (i,j) -> i[1]-j[1] ); 
+        Arrays.sort(b, (i,j) -> i[1]-j[1] ); 
+        List<int[]> candidates = new ArrayList<>();
+        List<List<Integer>> res = new ArrayList<>();
+        int k =  b.length-1;
+        
+        while(k  >= 0) 
         {
+            int complement = target - b[k][1];
+            int index = binarySearch(a, complement, true); 
+           // System.out.println("found at " + index + " for key = " + complement );
+           if(index < 0) { 
+            index = -index -1; // index of the least integer greater than key
+            index = index -1; // index of the greatest integer less than key
+           }
 
-            System.out.println(Arrays.toString(arr));
+            while(index >= 0 && index < a.length) 
+            {
+            int diff = target - (a[index][1]+ b[k][1]);
+            candidates.add(new int[]{a[index][0], b[k][0], diff }  );
+            index--;
+            }
+           
+            k--;
         }
+
+        Collections.sort(candidates, (i , j) ->  i[2]-j[2]  );
+
+        Integer[] lastDiff = { null};
+
+        candidates.forEach( p -> {            
+            if(lastDiff[0]==null || lastDiff[0]==p[2])
+            {
+  //              System.out.println("(" + Arrays.toString(p) + ")");
+                res.add(Arrays.asList(p[0],p[1]) );
+                lastDiff[0] = p[2];
+            }
+        });
+
+        return res;
+    }
+    
+
+    // same as binarsearch. TreeMap can be used for two dimension array source
+    public List<List<Integer>> TreeMap_getOptimalUtilization(int[][] a, int[][] b, int target)
+    {   
+        TreeMap<Integer,Integer> pos = new TreeMap<>();
+        List<int[]> candidates = new ArrayList<>();
+        List<List<Integer>> res = new ArrayList<>();
+
+        for(int i=0; i < a.length;i++)
+        {
+            pos.put(a[i][1],a[i][0]);
+        }
+
+        Arrays.sort(b, (i,j) -> i[1]-j[1] ); 
+
+        int k = b.length -1;
+        while(k>0)
+        {
+            int complement = target-b[k][1];
+            Map<Integer,Integer> candidate = pos.headMap(complement, true);
+
+            for(Map.Entry<Integer,Integer> e : candidate.entrySet())
+            {
+                int index = e.getValue();
+                int value = e.getKey();
+                int diff = target - (value+ b[k][1]);
+                candidates.add(new int[]{ index , b[k][0], diff});
+            }
+            
+            k--;
+        }
+
+        Collections.sort(candidates, (i , j) ->  i[2]-j[2]  );
+
+        Integer[] lastDiff = { null};
+
+        candidates.forEach( p -> {            
+            if(lastDiff[0]==null || lastDiff[0]==p[2])
+            {
+//                System.out.println("(" + Arrays.toString(p) + ")");
+                res.add(Arrays.asList(p[0],p[1]) );
+                lastDiff[0] = p[2];
+            }
+        });
 
         return res;
     }
 
     public void performTest()
     {
-        Helper.equals(getOptimalUtilization(new int[][] { {1,2}, {2,4},{3,6}}, new int[][]{{1,2}}, 7 ), 
-        new int[][] {{2,1}}, " ... " );
+        Helper.equalsTo(getOptimalUtilization(new int[][] { {1,2}, {2,4},{3,6}}, new int[][]{{1,2}}, 7 ), new Integer[][] {{2,1}});
+        Helper.equalsTo(getOptimalUtilization(new int[][] { {1,3}, {2,5},{3,7},{4,10}}, new int[][]{{1,2},{2,3},{3,4},{4,5}}, 10 ), new Integer[][] {{2,4},{3,2}});
+        Helper.equalsTo(getOptimalUtilization(new int[][] { {1,8}, {2,7},{3,14}}, new int[][]{{1,5},{2,10},{3,14}}, 20 ), new Integer[][] {{3,1}} );
+        Helper.equalsTo(getOptimalUtilization(new int[][] { {1,8}, {2,15},{3,9}}, new int[][]{{1,8},{2,11},{3,12}}, 20 ), new Integer[][] {{1,3}, {3,2}});
+        Helper.equalsTo(getOptimalUtilization(new int[][] { {1,0}, {2,0},{3,0}}, new int[][]{{1,0}}, 7 ), new Integer[][] {} );
+
+        System.out.println("$$$$$$$$$$$ Binary search approach:"); 
+        Helper.equalsTo(binarySearch_getOptimalUtilization(new int[][] { {1,2}, {2,4},{3,6}}, new int[][]{{1,2}}, 7 ), new Integer[][] {{2,1}});
+        Helper.equalsTo(binarySearch_getOptimalUtilization(new int[][] { {1,3}, {2,5},{3,7},{4,10}}, new int[][]{{1,2},{2,3},{3,4},{4,5}}, 10 ), new Integer[][] {{2,4},{3,2}});
+        Helper.equalsTo(binarySearch_getOptimalUtilization(new int[][] { {1,8}, {2,7},{3,14}}, new int[][]{{1,5},{2,10},{3,14}}, 20 ), new Integer[][] {{3,1}} );
+        Helper.equalsTo(binarySearch_getOptimalUtilization(new int[][] { {1,8}, {2,15},{3,9}}, new int[][]{{1,8},{2,11},{3,12}}, 20 ), new Integer[][] {{1,3}, {3,2}});
+        Helper.equalsTo(binarySearch_getOptimalUtilization(new int[][] { {1,0}, {2,0},{3,0}}, new int[][]{{1,0}}, 7 ), new Integer[][] {} );
     }
 
     public String toString() { 
@@ -2284,6 +2491,7 @@ public class YamaInterview
     {
         IInterviewQuestion[] questions = new IInterviewQuestion[] {
             new JavaCollections(),
+            new BinarySearch(),
             new TopKFrequentlyMentionedKeywords(),
             new RottintOranges(), // Zombin in Matrix
             new CriticalRoutersOrConnections(),
@@ -2291,7 +2499,7 @@ public class YamaInterview
             new NumberOfClusters() , 
             new ReorderDataInLogFile(),
             new PartitionLabel(),
-            new OptimalUtilization(), // incorrect
+            new OptimalUtilization(), 
             new MinimumCostToConnectRope(),
             new TreasureIsland(),
             new TreasureIsland2(),
@@ -2323,10 +2531,29 @@ public class YamaInterview
         }; 
 
         int count = 1;
+        int technique = 1;
         for(IInterviewQuestion q: questions) { 
-            System.out.println("(" + count + ") " + q);
-            q.performTest(); count++;
-            System.out.println("\n---------------------------\n");
+            if(q instanceof IImportTechnique)
+            {
+                System.out.println("*** TECHNIQUE " + technique + " *** " + q);
+                q.performTest(); technique++;
+                System.out.println("\n---------------------------\n");
+            }
+            else if(q instanceof IInterviewQuestion)
+            {
+                System.out.println("(" + count + ") " + q);
+                q.performTest(); count++;
+                System.out.println("\n---------------------------\n");
+            }
+        }
+        for(IInterviewQuestion q: questions) { 
+            if(q instanceof OptimalUtilization)
+            {
+                System.out.println("\n**********************************\n");
+                q.performTest(); count=99999;
+                System.out.println("\n**********************************\n");
+
+            }
         }
 
     }
