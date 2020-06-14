@@ -42,6 +42,9 @@ public class FindUniquePairsWithGivenSum implements IInterviewQuestion
 
       Helper.equals(findUniquePairsWithGivenSum(new int[] {1, 5, 1, 5} , 6 ),
       new Integer[][] { {5, 1}, {5, 1}}, "Find Unique Pairs ");
+
+      Helper.equals(findUniquePairsWithGivenSum(new int[] {1, 5, 9, 1, 5, 3, 2, 7} , 6 ),
+      new Integer[][] { {5, 1}, {5, 1}}, "Find Unique Pairs ");
     }
 
     public String toString() { return "Find Unqiue Pair With Given Sum ([E,I]**) [https://leetcode.com/discuss/interview-question/372434]: ";}
