@@ -18,151 +18,6 @@ import java.util.Map.Entry;
 
 import java.util.Iterator;
 
-
-class SearchMatrix implements IInterviewQuestion
-{
-    public boolean searchMatrix(int[][] matrix, int target) {
-        if(matrix==null || matrix.length==0 || matrix[0].length==0 ) return false;
-        int col = matrix[0].length-1;
-        int row = 0;
-        
-        while(row < matrix.length && col >= 0)
-        {
-            if(matrix[row][col]==target) return true;
-            if(matrix[row][col] < target) row++;
-            else col--;
-        }
-        
-        return false;
-    }
-
-    public void performTest()
-    {
-        int[][] m = new int[][] {
-            {1,   4,  7, 11, 15},
-            {2,   5,  8, 12, 19},
-            {3,   6,  9, 16, 22},
-            {10, 13, 14, 17, 24},
-            {18, 21, 23, 26, 30}
-        };
-
-        Helper.equals(searchMatrix(m, 16), true, "Search 16 ");
-        Helper.equals(searchMatrix(m, 13), true, "Search 13 ");
-        Helper.equals(searchMatrix(m, 100), false, "Search 100 ");
-    }
-
-    public String toString() { return "Seach a 2D Matrix ([N]**) [https://leetcode.com/problems/search-a-2d-matrix-ii]: ";}
-}
-
-class FavoriteGenres implements IInterviewQuestion
-{
-    public Map<String, List<String>> favoriteGenres(Map<String, List<String>> userSongs, Map<String, List<String>> songGenres)
-    {
-        Map<String, Integer> genreCount = new HashMap<>();
-        Map<String, String> song2Genre = new HashMap<>();
-        Map<String, List<String>> m = new HashMap<>();
-
-        for(Map.Entry<String, List<String>> e : songGenres.entrySet())
-        {
-            for(String song: e.getValue())
-            {
-                song2Genre.put(song, e.getKey());
-            }
-        }
-         
-        System.out.println(song2Genre);
-
-        for(Map.Entry<String, List<String>> e : userSongs.entrySet())
-        {
-            List<String> songs = e.getValue();
-            String singer = e.getKey();
-            genreCount.clear();
-
-            int max = Integer.MIN_VALUE;
-            for(String song: songs)
-            {
-                String genre = song2Genre.get(song);
-                genreCount.put(genre, genreCount.getOrDefault(genre,0) +1 );
-                max = Math.max( max, genreCount.get(genre));
-            }
-
-            for(Map.Entry<String,Integer> gc: genreCount.entrySet())
-            {
-                if(max==gc.getValue()) 
-                {
-                    m.put(singer, m.getOrDefault(singer, new ArrayList<String>()));
-                    m.get(singer).add(gc.getKey());
-                }
-            }
-
-            genreCount.clear();
-        }
-
-        return m;
-    }
-
-    public void performTest()
-    {
-        Map<String, List<String>> userSongs = new HashMap<>() ;
-        Map<String, List<String>> songGenres = new HashMap<>();
-
-        userSongs.put("David", Arrays.asList("song1", "song2", "song3", "song4", "song8"));
-        userSongs.put("Emma", Arrays.asList("song5", "song6", "song7"));
-        songGenres.put("Rock", Arrays.asList("song1", "song3"));
-        songGenres.put("Dubstep", Arrays.asList("song7"));
-        songGenres.put("Techno", Arrays.asList("song2", "song4"));
-        songGenres.put("Pop", Arrays.asList("song5", "song6"));
-        songGenres.put("Jazz", Arrays.asList("song8", "song9"));
-
-        Map<String, List<String>> m = favoriteGenres(userSongs, songGenres);
-        System.out.println(m);
-    }
-
-    public String toString() { return "Favorite Genres ([N]**) [    https://leetcode.com/discuss/interview-question/373006]: ";}
-
-}
-
-class MostCommonWord implements IInterviewQuestion
-{
-    public String mostCommonWord(String paragraph, String[] banned) {
-        String[] words = paragraph.split("\\W+"); // split by all non-character. + means more than one non-character can be used. 
-        HashSet<String> set = new HashSet<>();
-        HashMap<String,Integer> m = new HashMap<>();
-        String maxWord = null;
-        int max = 0;
-        for(String b : banned)
-            set.add(b.toLowerCase());
-        
-        for(String w: words)
-        {
-            w = w.toLowerCase();
-            if(!set.contains(w))
-            {
-                m.put(w, m.getOrDefault(w,0)+1);
-                int count =m.get(w);
-                if(count > max)
-                {
-                    maxWord = w;
-                    max = count;
-                }
-            }
-        }
-        
-        return maxWord;
-    }
-
-    public void performTest()
-    {
-        Helper.equals(mostCommonWord("Bob hit a ball, the hit BALL flew far after it was hit.", new String[] {"hit"}), 
-        "ball" , "Most Command Word ");
-        Helper.equals(mostCommonWord("Bob. hIt, baLl", new String[] {"bob", "hit"}), 
-        "ball" , "Most Command Word ");
-    }
-    
-    public String toString() { return "Most Common Word ([I]**) [https://leetcode.com/problems/most-common-word/]: ";}
-
-}
-
 class SubstringsOfSizeKwithKDistinctChars implements IInterviewQuestion
 {
     public List<String> substringsOfSizeKwithKDistinctChars(String s, int k)
@@ -569,6 +424,7 @@ class CopyRandomLinkedList  implements IInterviewQuestion {
 
 class LongestStringWithThreeConsecutiveCharacters  implements IInterviewQuestion {
     
+    // only work for leetcode 1405. Longest Happy String. at most 3 characters. not a general solution
     public void LongestStringWithAtMostKChar(Map<Character, int[]> map, int K, StringBuilder result) {
         PriorityQueue<Map.Entry<Character, int[]>> q = new PriorityQueue<>((a, b) -> (b.getValue()[0] - a.getValue()[0]));
         for(Map.Entry<Character, int[]> e : map.entrySet()) {
@@ -1637,12 +1493,12 @@ public class YamaInterview
             new CopyRandomLinkedList(),
             new MergeTwoSortedList(),
             new SubtreeOfAnotherTree(),
-            new SearchMatrix(), // incorrect
+            new SearchMatrix(), // CORRECT 
             new FavoriteGenres(),
             new FindUniquePairsWithGivenSum(),
-            new SubstringsOfExactlyKDistinctChars(), // INCORRECT
+            new SubstringsOfExactlyKDistinctChars(), // MAYBE INCORRECT
             new SubarraysWithKDifferentIntegers(),
-            new LongestStringWithThreeConsecutiveCharacters(), // longest numbers with K consecutive numbers. (INCORRECT?)
+            new LongestStringWithThreeConsecutiveCharacters(), // longest numbers with K consecutive numbers. (MAYBE INCORRECT?)
             // Max of Min Altitudes
             new LongestPlaindromicSubstring(),
             new SubstringsOfSizeKwithKDistinctChars(),
